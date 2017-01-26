@@ -13,8 +13,9 @@ public class ClientThread extends Thread {
 
     private long startThread = System.currentTimeMillis();
     private Socket clientSocket = null;
-    private WriteXMLFile_deltas_Server writeXMLFile_deltas_Server = null;
-    private WriteXMLFile_bytes1sec writeXML1secBytes = null;
+    private WriteXMLFile_Deltas writeXMLFile_Deltas = null;
+    private WriteXMLFile_bytes1sec writeXML1secBytes_Server = null;
+    private WriteXMLFile_bytes1sec writeXML1secBytes_Client = null;
 
     private RTInputStream RTin;
     private RTOutputStream RTout;
@@ -46,6 +47,27 @@ public class ClientThread extends Thread {
             uplink_Server_rcv();
             sleep(1000);
             downlink_Server_snd();
+            try {
+                //Read length
+                int length = dataIn.readInt();
+                dataMeasurement.deltaINVector_uplink.clear();
+                dataMeasurement.deltaOUTVector_downlink.clear();
+                //Read Delta Vectors
+                for (int j = 0; j < length; j++) {
+                    dataMeasurement.deltaINVector_uplink.add(dataIn.readLong());
+                    dataMeasurement.deltaOUTVector_downlink.add(dataIn.readLong());
+                }
+                //Receive 1secBytes Vector
+                int size = dataIn.readInt();
+                dataMeasurement.SampleSecondClient.clear();
+                for (int k = 0; k < size; k++) {
+                    int bytecnt = dataIn.readInt();
+                    long sampleTime = dataIn.readLong();
+                    dataMeasurement.SampleSecondClient.add(new Data1secBytes(bytecnt, sampleTime));
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         } catch (Exception ex) {
             System.err.println("Receiving Data Failure" + ex.getMessage());
         } finally {
@@ -58,9 +80,11 @@ public class ClientThread extends Thread {
                     dataMeasurement.deltaINVector_downlink.add(RTout.writeTimeVector.get(i) - RTout.writeTimeVector.get(i - 1));
                     dataMeasurement.deltaOUTVector_uplink.add(RTin.readTimeVector.get(i) - RTin.readTimeVector.get(i - 1));
                 }
-                
-                writeXMLFile_deltas_Server = new WriteXMLFile_deltas_Server("Server-packetTrain", dataMeasurement.deltaINVector_downlink, dataMeasurement.deltaOUTVector_uplink);
-                writeXML1secBytes = new WriteXMLFile_bytes1sec("Server-1secBytes", dataMeasurement.SampleSecond);
+
+                writeXMLFile_Deltas = new WriteXMLFile_Deltas("Deltas", dataMeasurement.deltaINVector_uplink, dataMeasurement.deltaINVector_downlink,
+                        dataMeasurement.deltaOUTVector_uplink, dataMeasurement.deltaOUTVector_downlink);
+                writeXML1secBytes_Client = new WriteXMLFile_bytes1sec("Client-1secBytes", dataMeasurement.SampleSecondClient);
+                writeXML1secBytes_Server = new WriteXMLFile_bytes1sec("Server-1secBytes", dataMeasurement.SampleSecondServer);
                 ServerUI.isTCPservDone = true;
                 DataMeasurement.TimeThread(startThread, System.currentTimeMillis());
             } catch (IOException ex) {

@@ -27,14 +27,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-public class WriteXMLFile_deltas_Client {
+public class WriteXMLFile_Deltas {
 
     private String byteCount = null;
     private String startTime = null;
     private String endTime = null;
     //DataMeasurement Measurement = null;
 
-    public WriteXMLFile_deltas_Client(String side, Vector<Long> deltaINUplink, Vector<Long> deltasOUTDownlink) {
+    public WriteXMLFile_Deltas(String name, Vector<Long> deltaINUplink,Vector<Long> deltasINDownlink,Vector<Long> deltasOUTUplink, Vector<Long> deltasOUTDownlink) {
 
         try {
             //this.Measurement = _Measurement;
@@ -43,13 +43,16 @@ public class WriteXMLFile_deltas_Client {
 
             // root elements
             Document doc = docBuilder.newDocument();
-            Element rootElement = doc.createElement("SamplesPacketTrains");
+            Element rootElement = doc.createElement("SamplesDeltas");
             doc.appendChild(rootElement);
-
+            
+            //All delta vectors have the same size
             for (int i = 0; i < deltaINUplink.size(); i++) {
                 String deltaIN_uplink = String.valueOf(deltaINUplink.get(i));
+                String deltaIN_dowlink = String.valueOf(deltasINDownlink.get(i));
+                String deltaOUT_uplink = String.valueOf(deltasOUTUplink.get(i));
                 String deltaOUT_downlink = String.valueOf(deltasOUTDownlink.get(i));
-                rootElement.appendChild(getSample(doc, String.valueOf(i), deltaIN_uplink,deltaOUT_downlink));
+                rootElement.appendChild(getSample(doc, String.valueOf(i), deltaIN_uplink, deltaIN_dowlink, deltaOUT_downlink, deltaOUT_uplink));
             }
             // write the content into xml file
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -58,7 +61,7 @@ public class WriteXMLFile_deltas_Client {
             SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yy:HH.mm.SS");
             Date now = new Date();
             String date = DATE_FORMAT.format(now);
-            String xmlName = side + "" + date;
+            String xmlName = name + "" + date;
             System.err.println("xmlName: " + xmlName);
             StreamResult result = new StreamResult(new File("/Users/glazen/Desktop/Measurements/" + xmlName + ".xml"));
 
@@ -75,10 +78,12 @@ public class WriteXMLFile_deltas_Client {
         }
     }
 
-    private Node getSample(Document doc, String id, String _deltaIN_uplink, String _deltaOUT_downlink) {
-        Element sample = doc.createElement("Deltas_Client");
+    private Node getSample(Document doc, String id, String _deltaIN_uplink,String _deltaIN_downlink, String _deltaOUT_uplink, String _deltaOUT_downlink) {
+        Element sample = doc.createElement("Deltas");
         sample.setAttribute("id", id);
         sample.appendChild(getSampleElements(doc, sample, "deltaIN_uplink", _deltaIN_uplink));
+        sample.appendChild(getSampleElements(doc, sample, "deltaIN_downlink", _deltaIN_downlink));
+        sample.appendChild(getSampleElements(doc, sample, "deltaOUT_uplink", _deltaOUT_uplink));
         sample.appendChild(getSampleElements(doc, sample, "deltaOUT_downlink", _deltaOUT_downlink));
         return sample;
     }

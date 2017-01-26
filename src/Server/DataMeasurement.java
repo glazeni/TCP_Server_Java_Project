@@ -46,7 +46,8 @@ class DataPacketTrain {
 
 public class DataMeasurement {
 
-    protected Vector<Data1secBytes> SampleSecond = null;
+    protected Vector<Data1secBytes> SampleSecondServer = null;
+    protected Vector<Data1secBytes> SampleSecondClient = null;
     protected static Vector<DataPacketTrain> packetTrains = null;
     protected static Vector<Data_Sample> SamplesBlock = null;
     protected Vector<Long> deltaINVector_uplink = null; //Sending time uplink vector 
@@ -59,7 +60,8 @@ public class DataMeasurement {
     public DataMeasurement() {
         try {
             SamplesBlock = new Vector<Data_Sample>();
-            SampleSecond = new Vector<Data1secBytes>();
+            SampleSecondServer = new Vector<Data1secBytes>();
+            SampleSecondClient = new Vector<Data1secBytes>();
             packetTrains = new Vector<DataPacketTrain>();
             deltaINVector_uplink = new Vector<Long>();
             deltaOUTVector_uplink = new Vector<Long>();
@@ -84,7 +86,7 @@ public class DataMeasurement {
     }
 
     public void add_SampleSecond(int _bytesRead, long sampleTime) {
-        SampleSecond.addElement(new Data1secBytes(_bytesRead, sampleTime));
+        SampleSecondServer.addElement(new Data1secBytes(_bytesRead, sampleTime));
     }
 
     public static void add_PacketTrain_Sample(int bytes, long send_time, long arrival_time) {
