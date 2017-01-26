@@ -48,12 +48,21 @@ public class Connection extends Thread {
                     dataOut.writeInt(dataMeasurement.deltaINVector_uplink.size());
                     dataOut.flush();
                 }
-                //Send deltaArrays
+                //Send Delta Vectors
                 for (int j = 0; j < dataMeasurement.deltaINVector_uplink.size(); j++) {
                     dataOut.writeLong(dataMeasurement.deltaINVector_uplink.get(j));
                     dataOut.writeLong(dataMeasurement.deltaOUTVector_downlink.get(j));
                     dataOut.flush();
                 }
+                //Send 1secBytes Vector, sending size first
+                dataOut.writeInt(dataMeasurement.SampleSecondClient.size());
+                for (int k = 0; k < dataMeasurement.SampleSecondClient.size(); k++) {
+                    dataOut.writeInt(dataMeasurement.SampleSecondClient.get(k).bytesRead);
+                    dataOut.flush();
+                    dataOut.writeLong(dataMeasurement.SampleSecondClient.get(k).sampleTime);
+                    dataOut.flush();
+                }
+
             } catch (IOException ex) {
                 ex.printStackTrace();
             }

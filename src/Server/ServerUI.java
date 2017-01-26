@@ -46,8 +46,6 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
     TCPServer tcpServ = null;
     TCPClient tcpClient = null;
     public static volatile boolean isTCPservDone;
-    public static volatile boolean isUplinkDone;
-    public static volatile boolean isDownlinkDone;
     public static DataMeasurement Measurement = null;
     public static ConcurrentHashMap<String, ClientThread> connlist = null;
     public static TimeSeries series = null;
@@ -391,6 +389,7 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
             jSpinner3.setEnabled(true);
             jSpinner4.setEnabled(true);
             jSpinner5.setEnabled(true);
+            jSpinner6.setEnabled(true);
             jTCPpanel.setEnabled(true);
             jGraphPanel.setEnabled(true);
         } else {
@@ -407,11 +406,11 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
             jSpinner3.setEnabled(false);
             jSpinner4.setEnabled(false);
             jSpinner5.setEnabled(false);
+            jSpinner6.setEnabled(false);
             jTCPpanel.setEnabled(false);
             jGraphPanel.setEnabled(false);
-            jGraphPanel.updateUI();
-
         }
+        jGraphPanel.updateUI();
     }
 
     //Update graph in real time
@@ -468,7 +467,12 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         try {
             //Create a Second object to solve duplicate time series
             this.series.addOrUpdate(new Second(new Date(), TimeZone.getDefault()), RTInputStream.bytesTotal);
-
+            //Verify whether the ClientThread is finished to create a new TCPServer instance
+            if (isTCPservDone) {
+                tcpServ = new TCPServer();
+                tcpServ.start();
+                isTCPservDone=false;
+            }
             //System.err.println("RTin.byteCnt="+RTInputStream.byteCnt);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -486,6 +490,7 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
                 jRadioServerButton.setSelected(true);
                 jTextIPclient.setEnabled(false);
                 jTextPortClient.setEnabled(false);
+                //Create a new TCPServer instance
                 tcpServ = new TCPServer();
                 tcpServ.start();
                 jTextIPserver.setText(String.valueOf(Constants.SERVER_IP));
@@ -550,6 +555,8 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
             }
         } catch (Exception ex) {
             ex.printStackTrace();
+        }finally{
+            timer.start();
         }
     }//GEN-LAST:event_jActiveButtonActionPerformed
 
@@ -582,11 +589,6 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
-            //Verify whether the ClientThread is finished to create a new instance
-            if (isTCPservDone) {
-                tcpServ = new TCPServer();
-                tcpServ.start();
-            }
             //Connection List
             if (connlist != null) {
                 for (Iterator<ClientThread> it = connlist.values().iterator(); it.hasNext();) {
