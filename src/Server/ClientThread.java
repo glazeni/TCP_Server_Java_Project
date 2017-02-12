@@ -16,7 +16,6 @@ import java.util.Vector;
 
 public class ClientThread extends Thread {
 
-    private long startThread = System.currentTimeMillis();
     private Socket clientSocket = null;
     private WriteXMLFile_ACKTiming writeXMLFile_ACKTiming = null;
     private WriteXMLFile_Deltas writeXMLFile_Deltas = null;
@@ -30,8 +29,7 @@ public class ClientThread extends Thread {
     private ReminderServer reminderServer;
     public String clientNumber = null;
     private boolean isAlgorithmDone;
-    //private ServerSocket listenControl = null;
-    //private Socket clientControl = null;
+    
 
     private String METHOD = null; //PGM-ProbeGapModel; PT-PacketTrain; MV-Moving Average; ACKTIMING-Write time Gap
 
@@ -41,6 +39,7 @@ public class ClientThread extends Thread {
 
     private int byteCnt = 0;
     private int byteSecond = 0;
+    private long runningTime = 0;
 
     public ClientThread(String _METHOD, String _clientNumber, Socket _clientSocket, DataMeasurement _dataMeasurement) {
         try {
@@ -226,8 +225,6 @@ public class ClientThread extends Thread {
             return true;
         } catch (IOException ex) {
             return false;
-        } catch (Exception ex) {
-            return false;
         } finally {
             keepRunning = false;
         }
@@ -379,7 +376,6 @@ public class ClientThread extends Thread {
             isAlgorithmDone = true;
             System.err.println("Method_PT_Client along with Report is done!");
         }
-
     }
 
     private void Method_MV_Uplink_Server() {
@@ -393,7 +389,7 @@ public class ClientThread extends Thread {
         try {
             //Uplink
             dataOut.writeByte(1);
-            long end = System.currentTimeMillis() + 5000;
+            long end = System.currentTimeMillis() + runningTime;
             uplink_Server_rcvInSeconds(end);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -450,8 +446,8 @@ public class ClientThread extends Thread {
             RTin.readTimeVector.clear();
             RTout.writeTimeVector.clear();
             dataMeasurement.SampleSecond_down.clear();
-            System.err.println("Method_MV_Server along with Report is done!");
             isAlgorithmDone = true;
+            System.err.println("Method_MV_Server along with Report is done!");
         }
     }
 
@@ -465,7 +461,7 @@ public class ClientThread extends Thread {
         try {
             //Uplink
             dataOut.writeByte(1);
-            long end = System.currentTimeMillis() + 5000;
+            long end = System.currentTimeMillis() + runningTime;
             uplink_Server_rcvInSeconds(end);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -523,8 +519,8 @@ public class ClientThread extends Thread {
             RTin.readTimeVector.clear();
             RTout.writeTimeVector.clear();
             dataMeasurement.SampleSecond_down.clear();
-            System.err.println("Method_MV_readVector_Server along with Report is done!");
             isAlgorithmDone = true;
+            System.err.println("Method_MV_readVector_Server along with Report is done!");
         }
     }
 
@@ -538,7 +534,7 @@ public class ClientThread extends Thread {
         try {
             //Uplink
             dataOut.writeByte(1);
-            long end = System.currentTimeMillis() + 5000;
+            long end = System.currentTimeMillis() + runningTime;
             uplink_Server_rcvInSeconds(end);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -567,11 +563,11 @@ public class ClientThread extends Thread {
         } finally {
             try {
                 //Discover ACKTimings
-                for (int r = 1; r < RTout.writeTimeVector.size()-1; r++) {
+                for (int r = 1; r < RTout.writeTimeVector.size() - 1; r++) {
                     long write = RTout.writeTimeVector.get(r);
                     long write_after = RTout.writeTimeVector.get(r - 1);
                     if ((write - write_after) > 10) {
-                        for (int l = r; l < RTout.writeTimeVector.size()-1; l++) {
+                        for (int l = r; l < RTout.writeTimeVector.size() - 1; l++) {
                             dataMeasurement.ACKTimingVector.add(RTout.writeTimeVector.get(l));
                         }
                         break;
@@ -588,7 +584,7 @@ public class ClientThread extends Thread {
     }
 
     private void Method_ACKTiming_Report_Server() {
-        //Report 1secBytes Vector, sending size first 
+        //Report ACKTiming Vector, sending size first 
         RTout.writeTimeVector.clear();
         try {
             dataIn.readByte();
@@ -597,11 +593,11 @@ public class ClientThread extends Thread {
                 RTout.writeTimeVector.add(dataIn.readLong());
             }
             //Discover ACKTimings
-            for (int r = 1; r < RTout.writeTimeVector.size()-1; r++) {
+            for (int r = 1; r < RTout.writeTimeVector.size() - 1; r++) {
                 long write = RTout.writeTimeVector.get(r);
                 long write_after = RTout.writeTimeVector.get(r - 1);
                 if ((write - write_after) > 10) {
-                    for (int l = r; l < RTout.writeTimeVector.size()-1; l++) {
+                    for (int l = r; l < RTout.writeTimeVector.size() - 1; l++) {
                         dataMeasurement.ACKTimingVector.add(RTout.writeTimeVector.get(l));
                     }
                     break;
@@ -614,8 +610,9 @@ public class ClientThread extends Thread {
             RTin.readTimeVector.clear();
             RTout.writeTimeVector.clear();
             dataMeasurement.aux_writeTimeVector.clear();
-            System.err.println("Method_ACKTiming_Server along with Report is done!");
             isAlgorithmDone = true;
+            System.err.println("Method_ACKTiming_Server along with Report is done!");
+
         }
     }
 

@@ -30,6 +30,7 @@ public class Connection extends Thread {
     private String METHOD = null;
     private double AvaBW = 0;
     private Vector<Double> AvailableBW = null;
+    private long runningTime = 0;
 
     public Connection(Socket _s, DataMeasurement _dataMeasurement) {
         try {
@@ -146,14 +147,12 @@ public class Connection extends Thread {
             return true;
         } catch (IOException ex) {
             return false;
-        } catch (Exception ex) {
-            return false;
         } finally {
             keepRunning = false;
         }
     }
 
-    private boolean downlink_Client_rcvInSeconds(long _end) throws IOException {
+    private boolean downlink_Client_rcvInSeconds(long _end) {
         try {
             byte[] rcv_buf = new byte[Constants.BLOCKSIZE];
             int n = 0;
@@ -375,7 +374,7 @@ public class Connection extends Thread {
         try {
             //Downlink
             dataIn.readByte();
-            long end = System.currentTimeMillis() + 5000;
+            long end = System.currentTimeMillis() + runningTime;
             downlink_Client_rcvInSeconds(end);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -427,7 +426,7 @@ public class Connection extends Thread {
         try {
             //Downlink
             dataIn.readByte();
-            long end = System.currentTimeMillis() + 5000;
+            long end = System.currentTimeMillis() + runningTime;
             downlink_Client_rcvInSeconds(end);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -461,7 +460,6 @@ public class Connection extends Thread {
         Constants.SOCKET_RCVBUF = 14600;
 
         //Measurements
-        dataMeasurement.aux_writeTimeVector.clear();
         try {
             //Uplink
             dataIn.readByte();
@@ -480,7 +478,7 @@ public class Connection extends Thread {
         try {
             //Downlink
             dataIn.readByte();
-            long end = System.currentTimeMillis();
+            long end = System.currentTimeMillis() + runningTime;
             downlink_Client_rcvInSeconds(end);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -488,7 +486,7 @@ public class Connection extends Thread {
     }
 
     private void Method_ACKTiming_Report_Client() {
-        //Report 1secBytes Vector, sending size first 
+        //Report ACKTiming Vector, sending size first 
         try {
             dataOut.writeByte(4);
             dataOut.writeInt(dataMeasurement.aux_writeTimeVector.size());
