@@ -34,7 +34,7 @@ public class WriteXMLFile_Deltas {
     private String endTime = null;
     //DataMeasurement Measurement = null;
 
-    public WriteXMLFile_Deltas(String name, Vector<Long> deltaINUplink,Vector<Long> deltasINDownlink,Vector<Long> deltasOUTUplink, Vector<Long> deltasOUTDownlink) {
+    public WriteXMLFile_Deltas(String name, Vector<Long> deltaINVector, Vector<Long> deltasOUTVector) {
 
         try {
             //this.Measurement = _Measurement;
@@ -47,12 +47,10 @@ public class WriteXMLFile_Deltas {
             doc.appendChild(rootElement);
             
             //All delta vectors have the same size
-            for (int i = 0; i < deltaINUplink.size(); i++) {
-                String deltaIN_uplink = String.valueOf(deltaINUplink.get(i));
-                String deltaIN_dowlink = String.valueOf(deltasINDownlink.get(i));
-                String deltaOUT_uplink = String.valueOf(deltasOUTUplink.get(i));
-                String deltaOUT_downlink = String.valueOf(deltasOUTDownlink.get(i));
-                rootElement.appendChild(getSample(doc, String.valueOf(i), deltaIN_uplink, deltaIN_dowlink, deltaOUT_downlink, deltaOUT_uplink));
+            for (int i = 0; i < deltaINVector.size(); i++) {
+                String deltaIN = String.valueOf(deltaINVector.get(i));
+                String deltaOUT = String.valueOf(deltasOUTVector.get(i));
+                rootElement.appendChild(getSample(doc, String.valueOf(i), deltaIN,deltaOUT));
             }
             // write the content into xml file
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -78,13 +76,11 @@ public class WriteXMLFile_Deltas {
         }
     }
 
-    private Node getSample(Document doc, String id, String _deltaIN_uplink,String _deltaIN_downlink, String _deltaOUT_uplink, String _deltaOUT_downlink) {
+    private Node getSample(Document doc, String id, String _deltaIN, String _deltaOUT) {
         Element sample = doc.createElement("Deltas");
         sample.setAttribute("id", id);
-        sample.appendChild(getSampleElements(doc, sample, "deltaIN_uplink", _deltaIN_uplink));
-        sample.appendChild(getSampleElements(doc, sample, "deltaIN_downlink", _deltaIN_downlink));
-        sample.appendChild(getSampleElements(doc, sample, "deltaOUT_uplink", _deltaOUT_uplink));
-        sample.appendChild(getSampleElements(doc, sample, "deltaOUT_downlink", _deltaOUT_downlink));
+        sample.appendChild(getSampleElements(doc, sample, "deltaIN", _deltaIN));
+        sample.appendChild(getSampleElements(doc, sample, "deltaOUT", _deltaOUT));
         return sample;
     }
 

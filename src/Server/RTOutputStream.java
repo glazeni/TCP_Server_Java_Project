@@ -30,7 +30,7 @@ public class RTOutputStream extends FilterOutputStream {
     public void write(byte data[]) throws IOException {
         long start = 0;
         super.write(data);
-        super.flush();
+        super.flush();  
     }
 
     @Override
@@ -39,4 +39,5 @@ public class RTOutputStream extends FilterOutputStream {
         super.write(data, off, len);
         super.flush();
     }
+    
 }

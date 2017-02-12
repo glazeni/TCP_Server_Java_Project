@@ -5,7 +5,6 @@
  */
 package Server;
 
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
 import java.io.InputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -42,7 +41,6 @@ public class RTInputStream extends FilterInputStream {
         int count = super.read(data, off, len);
 
         bytesTotal += count;//Sum of all read bytes
-
         return count;
     }
 }

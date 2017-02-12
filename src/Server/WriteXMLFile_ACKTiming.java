@@ -3,11 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Server;
 
 /**
@@ -32,14 +27,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-public class WriteXMLFile_bytes1sec {
+public class WriteXMLFile_ACKTiming {
 
     private String byteCount = null;
     private String startTime = null;
     private String endTime = null;
     //DataMeasurement Measurement = null;
 
-    public WriteXMLFile_bytes1sec(String side,Vector<DataSecond> Samples) {
+    public WriteXMLFile_ACKTiming(String name, Vector<Long> ACKTimingVector) {
 
         try {
             //this.Measurement = _Measurement;
@@ -48,29 +43,24 @@ public class WriteXMLFile_bytes1sec {
 
             // root elements
             Document doc = docBuilder.newDocument();
-            Element rootElement = doc.createElement("Samples_1sec_bytes");
+            Element rootElement = doc.createElement("SamplesACKTiming");
             doc.appendChild(rootElement);
-
             
-            
-            for(int i=0; i<Samples.size();i++){
-                String bytes= String.valueOf(Samples.get(i).bytesRead);
-                String sampleTime= String.valueOf(Samples.get(i).sampleTime);
-                rootElement.appendChild(getSample(doc,String.valueOf(i),bytes,sampleTime));
+            //All delta vectors have the same size
+            for (int i = 0; i < ACKTimingVector.size(); i++) {
+                String writeTime = String.valueOf(ACKTimingVector.get(i));
+                rootElement.appendChild(getSample(doc, String.valueOf(i), writeTime));
             }
-
-
-
             // write the content into xml file
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             DOMSource source = new DOMSource(doc);
             SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yy:HH.mm.SS");
             Date now = new Date();
-            String date= DATE_FORMAT.format(now);
-            String xmlName = side+""+date;
-            System.err.println("xmlName: "+xmlName);
-            StreamResult result = new StreamResult(new File("/Users/glazen/Desktop/Measurements/"+xmlName+".xml"));
+            String date = DATE_FORMAT.format(now);
+            String xmlName = name + "" + date;
+            System.err.println("xmlName: " + xmlName);
+            StreamResult result = new StreamResult(new File("/Users/glazen/Desktop/Measurements/" + xmlName + ".xml"));
 
             // Output to console for testing
             // StreamResult result = new StreamResult(System.out);
@@ -85,12 +75,10 @@ public class WriteXMLFile_bytes1sec {
         }
     }
 
-    private Node getSample(Document doc, String id, String byteCount, String sampleTime) {
-        Element sample = doc.createElement("Sample");
+    private Node getSample(Document doc, String id, String _writeTime) {
+        Element sample = doc.createElement("WriteTimes");
         sample.setAttribute("id", id);
-        
-        sample.appendChild(getSampleElements(doc, sample, "byteCount", byteCount));
-        sample.appendChild(getSampleElements(doc, sample, "sampleTime", sampleTime));
+        sample.appendChild(getSampleElements(doc, sample, "writeTime", _writeTime));
         return sample;
     }
 

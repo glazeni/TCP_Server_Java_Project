@@ -27,14 +27,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-public class WriteXMLFile_packet_train {
+public class WriteXMLFile_AvailBWVectors {
 
     private String byteCount = null;
     private String startTime = null;
     private String endTime = null;
     //DataMeasurement Measurement = null;
 
-    public WriteXMLFile_packet_train(String side, Vector<DataPacketTrain> Samples) {
+    public WriteXMLFile_AvailBWVectors(String name, Vector<Double> AvailBWVector) {
 
         try {
             //this.Measurement = _Measurement;
@@ -43,14 +43,13 @@ public class WriteXMLFile_packet_train {
 
             // root elements
             Document doc = docBuilder.newDocument();
-            Element rootElement = doc.createElement("Samples_packet_train");
+            Element rootElement = doc.createElement("SamplesDeltas");
             doc.appendChild(rootElement);
-
-            for (int i = 0; i < Samples.size(); i++) {
-                String bytes = String.valueOf(Samples.get(i).bytes);
-                String sendTime = String.valueOf(Samples.get(i).sendTime);
-                String arrivalTime = String.valueOf(Samples.get(i).arrivalTime);
-                rootElement.appendChild(getSample(doc, String.valueOf(i), bytes, sendTime, arrivalTime));
+            
+            //All delta vectors have the same size
+            for (int i = 0; i < AvailBWVector.size(); i++) {
+                String AvalBW = String.valueOf(AvailBWVector.get(i));
+                rootElement.appendChild(getSample(doc, String.valueOf(i), AvalBW));
             }
             // write the content into xml file
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -59,7 +58,7 @@ public class WriteXMLFile_packet_train {
             SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yy:HH.mm.SS");
             Date now = new Date();
             String date = DATE_FORMAT.format(now);
-            String xmlName = side + "" + date;
+            String xmlName = name + "" + date;
             System.err.println("xmlName: " + xmlName);
             StreamResult result = new StreamResult(new File("/Users/glazen/Desktop/Measurements/" + xmlName + ".xml"));
 
@@ -76,13 +75,10 @@ public class WriteXMLFile_packet_train {
         }
     }
 
-    private Node getSample(Document doc, String id, String byteCount, String sendTime, String arrivalTime) {
-        Element sample = doc.createElement("Sample");
+    private Node getSample(Document doc, String id, String _AvalBW) {
+        Element sample = doc.createElement("Deltas");
         sample.setAttribute("id", id);
-
-        sample.appendChild(getSampleElements(doc, sample, "byteCount", byteCount));
-        sample.appendChild(getSampleElements(doc, sample, "sendTime", sendTime));
-        sample.appendChild(getSampleElements(doc, sample, "arrivalTime", arrivalTime));
+        sample.appendChild(getSampleElements(doc, sample, "AvalBW", _AvalBW));
         return sample;
     }
 

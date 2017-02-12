@@ -45,9 +45,7 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
     InetAddress addr = null;
     TCPServer tcpServ = null;
     TCPClient tcpClient = null;
-    public static volatile boolean isTCPservDone;
-    public static DataMeasurement Measurement = null;
-    public static ConcurrentHashMap<String, ClientThread> connlist = null;
+    public DataMeasurement Measurement = null;
     public static TimeSeries series = null;
     private static double lastValue = 100.0;
     private static int connNumber = 0;
@@ -58,7 +56,6 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         initComponents();
         Measurement = new DataMeasurement();
         timer = new javax.swing.Timer(1000, this);
-        connlist = new ConcurrentHashMap<String, ClientThread>();
         setInterfaceEnable(false);
         DynamicLineAndTimeSeriesChart("Data Measurement");
 
@@ -95,8 +92,6 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         jLabel9 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
         jSpinner5 = new javax.swing.JSpinner();
-        jSpinner1 = new javax.swing.JSpinner();
-        jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         jLabel12 = new javax.swing.JLabel();
         jSpinner6 = new javax.swing.JSpinner();
@@ -191,9 +186,7 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
 
         jLabel10.setText("Socket Timeout");
 
-        jLabel5.setText("MTU Size Uplink");
-
-        jLabel6.setText("MTU Size Downlink");
+        jLabel6.setText("Packet Size");
 
         jLabel12.setText("Number of MTUs");
 
@@ -202,48 +195,43 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         jTCPpanelLayout.setHorizontalGroup(
             jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jTCPpanelLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap()
                 .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jTCPpanelLayout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jTCPpanelLayout.createSequentialGroup()
+                                .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel6)
+                                    .addComponent(jLabel7)
+                                    .addComponent(jLabel8))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
+                            .addGroup(jTCPpanelLayout.createSequentialGroup()
+                                .addComponent(jLabel10)
+                                .addGap(42, 42, 42)))
+                        .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jSpinner5, javax.swing.GroupLayout.DEFAULT_SIZE, 82, Short.MAX_VALUE)
+                            .addComponent(jSpinner4)
+                            .addComponent(jSpinner3)
+                            .addComponent(jSpinner2)))
+                    .addGroup(jTCPpanelLayout.createSequentialGroup()
+                        .addComponent(jLabel9)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(jTCPpanelLayout.createSequentialGroup()
                         .addComponent(jLabel12)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
-                    .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jTCPpanelLayout.createSequentialGroup()
-                            .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel5)
-                                .addComponent(jLabel6)
-                                .addComponent(jLabel7)
-                                .addComponent(jLabel8))
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
-                        .addGroup(jTCPpanelLayout.createSequentialGroup()
-                            .addComponent(jLabel10)
-                            .addGap(42, 42, 42))))
-                .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jSpinner6)
-                    .addComponent(jSpinner5, javax.swing.GroupLayout.DEFAULT_SIZE, 82, Short.MAX_VALUE)
-                    .addComponent(jSpinner4)
-                    .addComponent(jSpinner3)
-                    .addComponent(jSpinner2)
-                    .addComponent(jSpinner1))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jSpinner6, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
-            .addGroup(jTCPpanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel9)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jTCPpanelLayout.setVerticalGroup(
             jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jTCPpanelLayout.createSequentialGroup()
-                .addContainerGap()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel9)
                 .addGap(18, 18, 18)
                 .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel12)
                     .addComponent(jSpinner6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
-                    .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
@@ -341,19 +329,19 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
                                 .addComponent(jRadioServerButton)
                                 .addComponent(jTextIPserver, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addComponent(jLabel2)))))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jGraphPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(40, 40, 40)
-                        .addComponent(jTCPpanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(18, 18, 18)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(28, 28, 28)
+                        .addComponent(jTCPpanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel11)
                         .addGap(4, 4, 4)))
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(15, Short.MAX_VALUE))
+                .addContainerGap(16, Short.MAX_VALUE))
         );
 
         getAccessibleContext().setAccessibleDescription("");
@@ -384,7 +372,6 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
             jTextPortClient.setEnabled(true);
             jTextPortServer.setEnabled(true);
             jTextLogger.setEnabled(true);
-            jSpinner1.setEnabled(true);
             jSpinner2.setEnabled(true);
             jSpinner3.setEnabled(true);
             jSpinner4.setEnabled(true);
@@ -401,7 +388,6 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
             jTextPortClient.setEnabled(false);
             jTextPortServer.setEnabled(false);
             jTextLogger.setEnabled(false);
-            jSpinner1.setEnabled(false);
             jSpinner2.setEnabled(false);
             jSpinner3.setEnabled(false);
             jSpinner4.setEnabled(false);
@@ -468,12 +454,6 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
             //Create a Second object to solve duplicate time series
             this.series.addOrUpdate(new Second(new Date(), TimeZone.getDefault()), RTInputStream.bytesTotal);
             //Verify whether the ClientThread is finished to create a new TCPServer instance
-            if (isTCPservDone) {
-                tcpServ = new TCPServer();
-                tcpServ.start();
-                isTCPservDone=false;
-            }
-            //System.err.println("RTin.byteCnt="+RTInputStream.byteCnt);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -498,20 +478,12 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
                 Log("Server started! \n");
 
                 //Spinners Listeners
-                //MTU Size Uplink
-                jSpinner1.setValue((Integer) Constants.BLOCKSIZE_UPLINK);
-                jSpinner1.addChangeListener(new ChangeListener() {
-                    @Override
-                    public void stateChanged(ChangeEvent e) {
-                        Constants.BLOCKSIZE_UPLINK = (Integer) jSpinner1.getValue();
-                    }
-                });
-                //MTU Size Downlink
-                jSpinner2.setValue((Integer) Constants.BLOCKSIZE_DOWNLINK);
+                //MTU Size
+                jSpinner2.setValue((Integer) Constants.BLOCKSIZE);
                 jSpinner2.addChangeListener(new ChangeListener() {
                     @Override
                     public void stateChanged(ChangeEvent e) {
-                        Constants.BLOCKSIZE_DOWNLINK = (Integer) jSpinner2.getValue();
+                        Constants.BLOCKSIZE = (Integer) jSpinner2.getValue();
                     }
                 });
                 //Socket rcv Buffer
@@ -555,7 +527,7 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
             }
         } catch (Exception ex) {
             ex.printStackTrace();
-        }finally{
+        } finally {
             timer.start();
         }
     }//GEN-LAST:event_jActiveButtonActionPerformed
@@ -589,12 +561,12 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
-            //Connection List
-            if (connlist != null) {
-                for (Iterator<ClientThread> it = connlist.values().iterator(); it.hasNext();) {
-                    Log("Connection " + connNumber++ + ":" + it.next().getName() + "\n");
-                }
-            }
+//            //Connection List
+//            if (connlist != null) {
+//                for (Iterator<ClientThread> it = connlist.values().iterator(); it.hasNext();) {
+//                    Log("Connection " + connNumber++ + ":" + it.next().getName() + "\n");
+//                }
+//            }
             jTextPortServer.setText(String.valueOf(Constants.SERVERPORT));
             jTextPortClient.setText(String.valueOf(Constants.SERVERPORT));
         }
@@ -678,7 +650,6 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
@@ -686,7 +657,6 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
     private javax.swing.JRadioButton jRadioClientButton;
     private javax.swing.JRadioButton jRadioServerButton;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JSpinner jSpinner1;
     private javax.swing.JSpinner jSpinner2;
     private javax.swing.JSpinner jSpinner3;
     private javax.swing.JSpinner jSpinner4;
