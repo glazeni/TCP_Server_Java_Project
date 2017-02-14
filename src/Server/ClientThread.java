@@ -3,15 +3,20 @@
  */
 package Server;
 
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.Vector;
+import org.apache.commons.math3.distribution.TDistribution;
+import org.apache.commons.math3.exception.MathIllegalArgumentException;
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
 public class ClientThread extends Thread {
 
@@ -443,7 +448,10 @@ public class ClientThread extends Thread {
         } finally {
             try {
                 MovingAverageCalculation(dataMeasurement.SampleReadTime);
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV_readVector-1secBytes", dataMeasurement.SampleSecond_up);
+                Tstudent(dataMeasurement.SampleReadTime);
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV_readVector-1secBytes", dataMeasurement.SampleReadTime);
+                dataMeasurement.SampleReadTime.clear();
+
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -571,19 +579,48 @@ public class ClientThread extends Thread {
 
     private void MovingAverageCalculation(Vector<DataSecond> Vector_Read_or_Write) {
         int i, j = 0, bytesTotal = 0;
-        System.out.println("SIZE: " + Vector_Read_or_Write.size());
+        System.out.println("Size: " + Vector_Read_or_Write.size());
         for (i = 0; i < Vector_Read_or_Write.size(); i++) {
             bytesTotal = 0;
 
             while ((Vector_Read_or_Write.get(j).sampleTime - Vector_Read_or_Write.get(i).sampleTime) < 1000) {
-                if (j == Vector_Read_or_Write.size()-1) {
+                if (j == Vector_Read_or_Write.size() - 1) {
                     break;
                 }
                 bytesTotal += Vector_Read_or_Write.get(j).bytesRead;
                 j++;
             }
-            System.out.println("INTERVAL = [" + i + "," + j + "]" + " with bytesTotal="+bytesTotal);
+            double average = bytesTotal / (Vector_Read_or_Write.get(j).sampleTime - Vector_Read_or_Write.get(i).sampleTime);
+            System.out.println("Second Interval = [" + i + "," + j + "]" + " with bytesTotal=" + bytesTotal + "and Average=" + average);
             i = j;
         }
     }
+
+    private void Tstudent(Vector<DataSecond> Vector) {
+        SummaryStatistics stats = new SummaryStatistics();
+        for (int i = 0; i < Vector.size() - 1; i++) {
+            stats.addValue(Vector.get(i).bytesRead);
+        }
+
+        // Calculate 95% confidence interval
+        double ci = calcMeanCI(stats, 0.10);
+        System.out.println(String.format("Mean: %f", stats.getMean()));
+        double lower = stats.getMean() - ci;
+        double upper = stats.getMean() + ci;
+        System.out.println(String.format("Confidence Interval 10%%: %f, %f", lower, upper));
+    }
+
+    private static double calcMeanCI(SummaryStatistics stats, double level) {
+        try {
+            // Create T Distribution with N-1 degrees of freedom
+            TDistribution tDist = new TDistribution(stats.getN() - 1);
+            // Calculate critical value
+            double critVal = tDist.inverseCumulativeProbability(1.0 - (1 - level) / 2);
+            // Calculate confidence interval
+            return critVal * stats.getStandardDeviation() / Math.sqrt(stats.getN());
+        } catch (MathIllegalArgumentException e) {
+            return Double.NaN;
+        }
+    }
+    
 }

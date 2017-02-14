@@ -17,6 +17,6 @@ public class Constants {
     public static int SOCKET_SNDBUF = 14600; //14,6 Kb
     public static int SOCKET_RCVBUF = 14600; //14,6 Kb
     public static int SERVERPORT = 20000;
-    public static String SERVER_IP = "192.168.1.68";
+    public static String SERVER_IP = "10.22.125.237";
 
 }
