@@ -12,7 +12,8 @@ import java.util.Vector;
 
 public class RTInputStream extends FilterInputStream {
 
-    public static int bytesTotal = 0;
+    private int bytesTotal = 0;
+    public static int bytesGraph=0;
     public Vector<Long> readTimeVector = null;
 
     public RTInputStream(InputStream in) {
@@ -41,6 +42,15 @@ public class RTInputStream extends FilterInputStream {
         int count = super.read(data, off, len);
 
         bytesTotal += count;//Sum of all read bytes
+        bytesGraph += count;
         return count;
+    }
+    
+    public int getBytes(){
+        return bytesTotal;
+    }
+    
+    public void clearBytes(){
+        bytesTotal=0;
     }
 }

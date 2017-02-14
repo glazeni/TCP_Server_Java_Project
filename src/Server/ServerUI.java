@@ -452,7 +452,7 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
     public void actionPerformed(final ActionEvent e) {
         try {
             //Create a Second object to solve duplicate time series
-            this.series.addOrUpdate(new Second(new Date(), TimeZone.getDefault()), RTInputStream.bytesTotal);
+            this.series.addOrUpdate(new Second(new Date(), TimeZone.getDefault()), RTInputStream.bytesGraph);
             //Verify whether the ClientThread is finished to create a new TCPServer instance
         } catch (Exception ex) {
             ex.printStackTrace();

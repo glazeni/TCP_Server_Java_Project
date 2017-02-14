@@ -3,7 +3,6 @@
  */
 package Server;
 
-import static Server.TCPServer.controlSession;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -21,15 +20,13 @@ public class ClientThread extends Thread {
     private WriteXMLFile_Deltas writeXMLFile_Deltas = null;
     private WriteXMLFile_bytes1sec writeXMLFile_bytes1sec = null;
     private WriteXMLFile_AvailBWVectors writeXMLFile_AvailBWVectors = null;
-    private RTInputStream RTin;
-    private RTOutputStream RTout;
-    private DataInputStream dataIn;
-    private DataOutputStream dataOut;
-    public DataMeasurement dataMeasurement = null;
-    private ReminderServer reminderServer;
-    public String clientNumber = null;
-    private boolean isAlgorithmDone;
-    
+    private RTInputStream RTin = null;
+    private RTOutputStream RTout = null;
+    private DataInputStream dataIn = null;
+    private DataOutputStream dataOut = null;
+    private DataMeasurement dataMeasurement = null;
+    private ReminderServer reminderServer = null;
+    private boolean isAlgorithmDone = false;
 
     private String METHOD = null; //PGM-ProbeGapModel; PT-PacketTrain; MV-Moving Average; ACKTIMING-Write time Gap
 
@@ -37,14 +34,15 @@ public class ClientThread extends Thread {
     private Vector<Double> AvailableBW_up = null;
     private Vector<Double> AvailableBW_down = null;
 
+    private int ID = 0;
     private int byteCnt = 0;
     private int byteSecond = 0;
-    private long runningTime = 0;
+    private long runningTime = 5000;
 
-    public ClientThread(String _METHOD, String _clientNumber, Socket _clientSocket, DataMeasurement _dataMeasurement) {
+    public ClientThread(int _ID, String _METHOD, Socket _clientSocket, DataMeasurement _dataMeasurement) {
         try {
+            this.ID = _ID;
             this.METHOD = _METHOD;
-            this.clientNumber = _clientNumber;
             this.clientSocket = _clientSocket;
             this.dataMeasurement = _dataMeasurement;
             RTin = new RTInputStream(clientSocket.getInputStream());
@@ -60,7 +58,6 @@ public class ClientThread extends Thread {
 
     //Runnable Data Receiver
     public void run() {
-
         try {
             dataOut.writeUTF(METHOD);
             switch (METHOD) {
@@ -103,7 +100,7 @@ public class ClientThread extends Thread {
             }
 
         } catch (Exception ex) {
-            System.err.println("Receiving Data Failure" + ex.getMessage());
+            System.err.println("Receiving Data Failure: " + ex.getMessage());
             ex.printStackTrace();
         } finally {
             try {
@@ -112,8 +109,9 @@ public class ClientThread extends Thread {
                     System.err.println("                                                     clientSocket CLOSED!");
                 }
                 if (isAlgorithmDone) {
-                    TCPServer.clientSession.remove(this.clientNumber);
-                    TCPServer.controlSession.remove(this.clientNumber);
+                    TCPServer.clientSession.remove(this.ID);
+                    TCPServer.clientBoolean.remove(this.ID);
+                    TCPServer.clientMeasurement.remove(this.ID);
                 }
 
             } catch (Exception ex) {
@@ -163,7 +161,8 @@ public class ClientThread extends Thread {
             System.out.println("\nuplink_Server_rcvInSeconds");
             //Initialize Timer
             if (METHOD.equalsIgnoreCase("MV_Uplink")) {
-                reminderServer = new ReminderServer(1, this.dataMeasurement);
+                reminderServer = new ReminderServer(1, this.dataMeasurement, this.RTin);
+                reminderServer.start();
             }
             long now = System.currentTimeMillis();
             while (System.currentTimeMillis() < _end) {
@@ -174,27 +173,26 @@ public class ClientThread extends Thread {
 
                     if (n > 0) {
                         byteCnt += n;
-                        byteSecond += n;
-
-                        if ((System.currentTimeMillis() >= (now + 1000)) && (METHOD.equalsIgnoreCase("MV_readVectorUP"))) {
-                            now = System.currentTimeMillis();
-                            dataMeasurement.add_SampleSecond_up(byteSecond, System.currentTimeMillis());
-                            byteSecond = 0;
+                        if (METHOD.equalsIgnoreCase("MV_readVectorUP")) {
+                            dataMeasurement.add_SampleReadTime(byteCnt, System.currentTimeMillis());
                         }
 
+//                        byteSecond += n;
+//                        if ((System.currentTimeMillis() >= (now + 1000)) && (METHOD.equalsIgnoreCase("MV_readVectorUP"))) {
+//                            now = System.currentTimeMillis();
+//                            dataMeasurement.add_SampleSecond_up(byteSecond, System.currentTimeMillis());
+//                            byteSecond = 0;
+//                        }
                     } else {
-                        System.err.println("Read n<0");
+                        System.out.println("Read n<0");
                         break;
                     }
 
                     if (byteCnt < Constants.BLOCKSIZE) {
-                        System.err.println("Read " + n + " bytes");
+                        System.out.println("Read " + n + " bytes");
                         //Keep reading MTU
                     } else {
                         //MTU is finished
-                        if (METHOD.equalsIgnoreCase("MV_Uplink")) {
-                            dataMeasurement.add_SampleSecond_up(byteCnt, System.currentTimeMillis());
-                        }
                         break;
                     }
                 } while ((n > 0) && (byteCnt < Constants.BLOCKSIZE));
@@ -251,7 +249,7 @@ public class ClientThread extends Thread {
         AvailableBW_up.clear();
         int length = deltaINvector.size();
         int readVectorLength = RTin.readTimeVector.size() - 1;
-        double Capacity = RTInputStream.bytesTotal / (RTin.readTimeVector.get(readVectorLength) - RTin.readTimeVector.get(0));
+        double Capacity = RTin.getBytes() / (RTin.readTimeVector.get(readVectorLength) - RTin.readTimeVector.get(0));
         //Calculate AvailableBW
         for (int i = 0; i < length; i++) {
             double deltaIN = deltaINvector.get(i);
@@ -260,7 +258,7 @@ public class ClientThread extends Thread {
             AvailableBW_up.add((1 - deltaResult) * Capacity);
         }
         //Export to XML
-        writeXMLFile_Deltas = new WriteXMLFile_Deltas("PGM-" + direction + "-", deltaINvector, deltaOUTvector);
+        writeXMLFile_Deltas = new WriteXMLFile_Deltas(ID + " PGM-" + direction + "-", deltaINvector, deltaOUTvector);
         System.out.println("Probe Gap Model Done!");
     }
 
@@ -277,7 +275,6 @@ public class ClientThread extends Thread {
     }
 
     private void Method_PGM() {
-        isAlgorithmDone = false;
         //Parameters
         Constants.SOCKET_RCVBUF = 2920;
         Constants.SOCKET_RCVBUF = 2920;
@@ -318,8 +315,6 @@ public class ClientThread extends Thread {
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
-            RTin.readTimeVector.clear();
-            RTout.writeTimeVector.clear();
             dataMeasurement.deltaINVector_uplink.clear();
             dataMeasurement.deltaOUTVector_uplink.clear();
             dataMeasurement.deltaINVector_downlink.clear();
@@ -330,7 +325,6 @@ public class ClientThread extends Thread {
     }
 
     private void Method_PT() {
-        isAlgorithmDone = false;
         //Parameters
         Constants.NUMBER_BLOCKS = 10;
         Constants.SOCKET_RCVBUF = 14600;
@@ -367,25 +361,20 @@ public class ClientThread extends Thread {
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
-            writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors("AvalBW_downlink", AvailableBW_down);
-            writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors("AvalBW_downlink", AvailableBW_up);
-            AvailableBW_down.clear();
-            AvailableBW_up.clear();
-            RTin.readTimeVector.clear();
-            RTout.writeTimeVector.clear();
+            writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " AvalBW_downlink", AvailableBW_down);
+            writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " AvalBW_uplink", AvailableBW_up);
             isAlgorithmDone = true;
             System.err.println("Method_PT_Client along with Report is done!");
         }
     }
 
     private void Method_MV_Uplink_Server() {
-        isAlgorithmDone = false;
-
         //Parameters
         Constants.SOCKET_RCVBUF = 14600;
         Constants.SOCKET_RCVBUF = 14600;
 
         //Measurements
+        dataMeasurement.SampleSecond_up.clear();
         try {
             //Uplink
             dataOut.writeByte(1);
@@ -395,10 +384,7 @@ public class ClientThread extends Thread {
             ex.printStackTrace();
         } finally {
             try {
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec("Uplink-MV-1secBytes", dataMeasurement.SampleSecond_up);
-                dataMeasurement.SampleSecond_up.clear();
-                Thread c = new ClientThread("MV_Downlink", this.clientNumber, TCPServer.clientSession.get(clientNumber), this.dataMeasurement);
-                c.start();
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV-1secBytes", dataMeasurement.SampleSecond_up);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -413,18 +399,10 @@ public class ClientThread extends Thread {
         //Measurements
         try {
             //Downlink
-            dataOut.writeByte(1);
+            dataOut.writeByte(2);
             downlink_Server_sndInSeconds();
         } catch (IOException ex) {
             ex.printStackTrace();
-        } finally {
-            try {
-                Thread c = new ClientThread("MV_Report", this.clientNumber, TCPServer.controlSession.get(clientNumber), this.dataMeasurement);
-                c.start();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-
         }
     }
 
@@ -442,22 +420,19 @@ public class ClientThread extends Thread {
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
-            writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec("Downlink-MV-1secBytes", dataMeasurement.SampleSecond_down);
-            RTin.readTimeVector.clear();
-            RTout.writeTimeVector.clear();
-            dataMeasurement.SampleSecond_down.clear();
+            writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV-1secBytes", dataMeasurement.SampleSecond_down);
             isAlgorithmDone = true;
             System.err.println("Method_MV_Server along with Report is done!");
         }
     }
 
     private void Method_MV_UP_readVector_Server() {
-        isAlgorithmDone = false;
         //Parameters
         Constants.SOCKET_RCVBUF = 14600;
         Constants.SOCKET_RCVBUF = 14600;
 
         //Measurements
+        dataMeasurement.SampleSecond_up.clear();
         try {
             //Uplink
             dataOut.writeByte(1);
@@ -467,10 +442,8 @@ public class ClientThread extends Thread {
             ex.printStackTrace();
         } finally {
             try {
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec("Uplink-MV_readVector-1secBytes", dataMeasurement.SampleSecond_up);
-                dataMeasurement.SampleSecond_up.clear();
-                Thread c = new ClientThread("MV_readVectorDOWN", this.clientNumber, TCPServer.clientSession.get(clientNumber), this.dataMeasurement);
-                c.start();
+                MovingAverageCalculation(dataMeasurement.SampleReadTime);
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV_readVector-1secBytes", dataMeasurement.SampleSecond_up);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -486,18 +459,10 @@ public class ClientThread extends Thread {
         //Measurements
         try {
             //Uplink
-            dataOut.writeByte(1);
+            dataOut.writeByte(2);
             downlink_Server_sndInSeconds();
         } catch (IOException ex) {
             ex.printStackTrace();
-        } finally {
-            try {
-                Thread c = new ClientThread("MV_Report_readVector", this.clientNumber, TCPServer.controlSession.get(clientNumber), this.dataMeasurement);
-                c.start();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-
         }
     }
 
@@ -515,22 +480,19 @@ public class ClientThread extends Thread {
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
-            writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec("Downlink-MV_readVector-1secBytes", dataMeasurement.SampleSecond_down);
-            RTin.readTimeVector.clear();
-            RTout.writeTimeVector.clear();
-            dataMeasurement.SampleSecond_down.clear();
+            writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV_readVector-1secBytes", dataMeasurement.SampleSecond_down);
             isAlgorithmDone = true;
             System.err.println("Method_MV_readVector_Server along with Report is done!");
         }
     }
 
     private void Method_ACKTimingUP_Server() {
-        isAlgorithmDone = false;
         //Parameters
         Constants.SOCKET_RCVBUF = 14600;
         Constants.SOCKET_RCVBUF = 14600;
 
         //Measurements
+        dataMeasurement.SampleSecond_up.clear();
         try {
             //Uplink
             dataOut.writeByte(1);
@@ -538,13 +500,6 @@ public class ClientThread extends Thread {
             uplink_Server_rcvInSeconds(end);
         } catch (IOException ex) {
             ex.printStackTrace();
-        } finally {
-            try {
-                Thread c = new ClientThread("ACKTiming_DOWN", this.clientNumber, TCPServer.clientSession.get(clientNumber), this.dataMeasurement);
-                c.start();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
         }
     }
 
@@ -556,27 +511,26 @@ public class ClientThread extends Thread {
         //Measurements
         try {
             //Uplink
-            dataOut.writeByte(1);
+            dataOut.writeByte(2);
             downlink_Server_sndInSeconds();
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
             try {
                 //Discover ACKTimings
+                long threshold = 10;
+                dataMeasurement.ACKTimingVector.clear();
                 for (int r = 1; r < RTout.writeTimeVector.size() - 1; r++) {
                     long write = RTout.writeTimeVector.get(r);
                     long write_after = RTout.writeTimeVector.get(r - 1);
-                    if ((write - write_after) > 10) {
+                    if ((write - write_after) > threshold) {
                         for (int l = r; l < RTout.writeTimeVector.size() - 1; l++) {
                             dataMeasurement.ACKTimingVector.add(RTout.writeTimeVector.get(l));
                         }
                         break;
                     }
                 }
-                writeXMLFile_ACKTiming = new WriteXMLFile_ACKTiming("Downlink-ACKTiming", dataMeasurement.ACKTimingVector);
-                RTout.writeTimeVector.clear();
-                Thread c = new ClientThread("ACKTiming_Report", this.clientNumber, TCPServer.controlSession.get(clientNumber), this.dataMeasurement);
-                c.start();
+                writeXMLFile_ACKTiming = new WriteXMLFile_ACKTiming(ID + " Downlink-ACKTiming", dataMeasurement.ACKTimingVector);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -584,7 +538,7 @@ public class ClientThread extends Thread {
     }
 
     private void Method_ACKTiming_Report_Server() {
-        //Report ACKTiming Vector, sending size first 
+        //Receive Report ACKTiming Vector, sending size first 
         RTout.writeTimeVector.clear();
         try {
             dataIn.readByte();
@@ -593,10 +547,12 @@ public class ClientThread extends Thread {
                 RTout.writeTimeVector.add(dataIn.readLong());
             }
             //Discover ACKTimings
+            int threshold = 10;
+            dataMeasurement.ACKTimingVector.clear();
             for (int r = 1; r < RTout.writeTimeVector.size() - 1; r++) {
                 long write = RTout.writeTimeVector.get(r);
                 long write_after = RTout.writeTimeVector.get(r - 1);
-                if ((write - write_after) > 10) {
+                if ((write - write_after) > threshold) {
                     for (int l = r; l < RTout.writeTimeVector.size() - 1; l++) {
                         dataMeasurement.ACKTimingVector.add(RTout.writeTimeVector.get(l));
                     }
@@ -606,14 +562,28 @@ public class ClientThread extends Thread {
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
-            writeXMLFile_ACKTiming = new WriteXMLFile_ACKTiming("Uplink-ACKTiming", dataMeasurement.ACKTimingVector);
-            RTin.readTimeVector.clear();
-            RTout.writeTimeVector.clear();
-            dataMeasurement.aux_writeTimeVector.clear();
+            writeXMLFile_ACKTiming = new WriteXMLFile_ACKTiming(ID + " Uplink-ACKTiming", dataMeasurement.ACKTimingVector);
             isAlgorithmDone = true;
             System.err.println("Method_ACKTiming_Server along with Report is done!");
 
         }
     }
 
+    private void MovingAverageCalculation(Vector<DataSecond> Vector_Read_or_Write) {
+        int i, j = 0, bytesTotal = 0;
+        System.out.println("SIZE: " + Vector_Read_or_Write.size());
+        for (i = 0; i < Vector_Read_or_Write.size(); i++) {
+            bytesTotal = 0;
+
+            while ((Vector_Read_or_Write.get(j).sampleTime - Vector_Read_or_Write.get(i).sampleTime) < 1000) {
+                if (j == Vector_Read_or_Write.size()-1) {
+                    break;
+                }
+                bytesTotal += Vector_Read_or_Write.get(j).bytesRead;
+                j++;
+            }
+            System.out.println("INTERVAL = [" + i + "," + j + "]" + " with bytesTotal="+bytesTotal);
+            i = j;
+        }
+    }
 }
