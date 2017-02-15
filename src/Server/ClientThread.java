@@ -509,6 +509,7 @@ public class ClientThread extends Thread {
             MovingAverageCalculation(dataMeasurement.SampleReadTime);
             Tstudent(ByteSecondVector);
             int total = 0;
+            
             for (int i = 0; i < ByteSecondVector.size(); i++) {
                 total += ByteSecondVector.get(i);
             }
