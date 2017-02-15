@@ -60,7 +60,7 @@ public class WriteXMLFile_AvailBWVectors {
             String date = DATE_FORMAT.format(now);
             String xmlName = name + "" + date;
             System.err.println("xmlName: " + xmlName);
-            StreamResult result = new StreamResult(new File("/Users/glazen/Desktop/Measurements/" + xmlName + ".xml"));
+            StreamResult result = new StreamResult(new File("/home/glazen/Desktop/Measurements/PT/" + xmlName + ".xml"));
 
             // Output to console for testing
             // StreamResult result = new StreamResult(System.out);

@@ -13,7 +13,7 @@ public class TCP_Properties {
         s.setSendBufferSize(Constants.SOCKET_RCVBUF);
         s.setReceiveBufferSize(Constants.SOCKET_RCVBUF);
         s.setSoTimeout(Constants.SO_TIMEOUT);
-        s.setTcpNoDelay(true);//true- Disable Nagle's Algorithm / false-otherwise
+        s.setTcpNoDelay(false);//true- Disable Nagle's Algorithm / false-otherwise
         s.setSoLinger(false, 0); //Set to false: The connection will be closed only when the data transmitted 
         //to the socket has been successfully delivered
     }

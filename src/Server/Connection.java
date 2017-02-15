@@ -23,7 +23,6 @@ public class Connection extends Thread {
     private DataMeasurement dataMeasurement = null;
     private ReminderClient reminderClient = null;
     private int byteCnt = 0;
-    private int byteSecond = 0;
     private boolean isThreadMethod;
     private String METHOD = null;
     private double AvaBW = 0;
@@ -150,9 +149,7 @@ public class Connection extends Thread {
             //Initialize Timer
             if (isThreadMethod) {
                 reminderClient = new ReminderClient(1, this.dataMeasurement, this.RTin);
-                reminderClient.start();
             }
-            //long now = System.currentTimeMillis();
             while (System.currentTimeMillis() < _end) {
 
                 byteCnt = 0;
@@ -165,19 +162,13 @@ public class Connection extends Thread {
                         if (!isThreadMethod) {
                             dataMeasurement.add_SampleReadTime(byteCnt, System.currentTimeMillis());
                         }
-//                        byteSecond += n;
-//                        if ((System.currentTimeMillis() >= (now + 1000)) && METHOD.equalsIgnoreCase("MV_readVectorDOWN")) {
-//                            now = System.currentTimeMillis();
-//                            dataMeasurement.add_SampleSecond_down(byteSecond, System.currentTimeMillis());
-//                            byteSecond = 0;
-//                        }
                     } else {
                         System.err.println("Read n<0");
                         break;
                     }
 
                     if (byteCnt < Constants.BLOCKSIZE) {
-                        System.out.println("Read " + n + " bytes");
+                        //System.out.println("Read " + n + " bytes");
                         //Keep reading MTU
                     } else {
                         //MTU is finished
@@ -196,7 +187,7 @@ public class Connection extends Thread {
             return false;
         } finally {
             if (isThreadMethod) {
-                reminderClient.timer.cancel();
+                reminderClient.cancelTimer();
             }
         }
     }
@@ -407,9 +398,7 @@ public class Connection extends Thread {
             dataOut.writeByte(3);
             dataOut.writeInt(dataMeasurement.SampleSecond_down.size());
             for (int k = 0; k < dataMeasurement.SampleSecond_down.size(); k++) {
-                dataOut.writeInt(dataMeasurement.SampleSecond_down.get(k).bytesRead);
-                dataOut.flush();
-                dataOut.writeLong(dataMeasurement.SampleSecond_down.get(k).sampleTime);
+                dataOut.writeInt(dataMeasurement.SampleSecond_down.get(k));
                 dataOut.flush();
             }
         } catch (IOException ex) {
@@ -455,7 +444,7 @@ public class Connection extends Thread {
         Constants.BLOCKSIZE = 8000;
 
         //Measurements
-        dataMeasurement.SampleSecond_down.clear();
+        dataMeasurement.SampleReadTime.clear();
         try {
             //Downlink
             dataIn.readByte();
@@ -482,17 +471,16 @@ public class Connection extends Thread {
         //Report 1secBytes Vector, sending size first 
         try {
             dataOut.writeByte(3);
-            dataOut.writeInt(dataMeasurement.SampleSecond_down.size());
-            for (int k = 0; k < dataMeasurement.SampleSecond_down.size(); k++) {
-                dataOut.writeInt(dataMeasurement.SampleSecond_down.get(k).bytesRead);
+            dataOut.writeInt(dataMeasurement.SampleReadTime.size());
+            for (int k = 0; k < dataMeasurement.SampleReadTime.size(); k++) {
+                dataOut.writeInt(dataMeasurement.SampleReadTime.get(k).bytesRead);
                 dataOut.flush();
-                dataOut.writeLong(dataMeasurement.SampleSecond_down.get(k).sampleTime);
+                dataOut.writeLong(dataMeasurement.SampleReadTime.get(k).sampleTime);
                 dataOut.flush();
             }
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
-            dataMeasurement.SampleSecond_down.clear();
             System.err.println("Method_MV_readVector_Client along with Report is done!");
         }
     }

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-/*
+ /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -39,7 +39,7 @@ public class WriteXMLFile_bytes1sec {
     private String endTime = null;
     //DataMeasurement Measurement = null;
 
-    public WriteXMLFile_bytes1sec(String side,Vector<DataSecond> Samples) {
+    public WriteXMLFile_bytes1sec(String side, Vector<Integer> Samples, int TotalTransferedBytes, double Mean, double lower_bound, double upper_bound) {
 
         try {
             //this.Measurement = _Measurement;
@@ -51,15 +51,35 @@ public class WriteXMLFile_bytes1sec {
             Element rootElement = doc.createElement("Samples_1sec_bytes");
             doc.appendChild(rootElement);
 
-            
-            
-            for(int i=0; i<Samples.size();i++){
-                String bytes= String.valueOf(Samples.get(i).bytesRead);
-                String sampleTime= String.valueOf(Samples.get(i).sampleTime);
-                rootElement.appendChild(getSample(doc,String.valueOf(i),bytes,sampleTime));
+            for (int i = 0; i < Samples.size(); i++) {
+                String bytes = String.valueOf(Samples.get(i));
+                rootElement.appendChild(getSample(doc, String.valueOf(i), bytes));
             }
+            //Append Total Transfered Bytes
+            String TotalTransfered = String.valueOf(TotalTransferedBytes);
+            Element node = doc.createElement("Total_Transfered_Bytes");
+            node.appendChild(doc.createTextNode(TotalTransfered));
+            rootElement.appendChild(node);
 
+            //Append T Distribution Stats
+            Element node_stats = doc.createElement("Statistics");
+            rootElement.appendChild(node_stats);
 
+            String mean = String.valueOf(Mean);
+            String lower = String.valueOf(lower_bound);
+            String upper = String.valueOf(upper_bound);
+
+            Element meanValue = doc.createElement("Mean");
+            meanValue.appendChild(doc.createTextNode(mean));
+            node_stats.appendChild(meanValue);
+
+            Element lowerValue = doc.createElement("Lower_Bound");
+            lowerValue.appendChild(doc.createTextNode(lower));
+            node_stats.appendChild(lowerValue);
+
+            Element upperValue = doc.createElement("Upper_Bound");
+            upperValue.appendChild(doc.createTextNode(upper));
+            node_stats.appendChild(upperValue);
 
             // write the content into xml file
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -67,10 +87,10 @@ public class WriteXMLFile_bytes1sec {
             DOMSource source = new DOMSource(doc);
             SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yy:HH.mm.SS");
             Date now = new Date();
-            String date= DATE_FORMAT.format(now);
-            String xmlName = side+""+date;
-            System.err.println("xmlName: "+xmlName);
-            StreamResult result = new StreamResult(new File("/Users/glazen/Desktop/Measurements/"+xmlName+".xml"));
+            String date = DATE_FORMAT.format(now);
+            String xmlName = side + "" + date;
+            System.err.println("xmlName: " + xmlName);
+            StreamResult result = new StreamResult(new File("/home/glazen/Desktop/Measurements/MV/" + xmlName + ".xml"));
 
             // Output to console for testing
             // StreamResult result = new StreamResult(System.out);
@@ -85,12 +105,11 @@ public class WriteXMLFile_bytes1sec {
         }
     }
 
-    private Node getSample(Document doc, String id, String byteCount, String sampleTime) {
+    private Node getSample(Document doc, String id, String byteCount) {
         Element sample = doc.createElement("Sample");
         sample.setAttribute("id", id);
-        
+
         sample.appendChild(getSampleElements(doc, sample, "byteCount", byteCount));
-        sample.appendChild(getSampleElements(doc, sample, "sampleTime", sampleTime));
         return sample;
     }
 

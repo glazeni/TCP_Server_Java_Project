@@ -17,37 +17,43 @@ import org.jfree.data.time.Second;
  */
 public class ReminderServer extends Thread {
 
-    public volatile boolean isRunning;
-    public Timer timer = null;
+    private Timer timer = null;
     private DataMeasurement dataMeasurement = null;
     private RTInputStream RTin = null;
-    public int i = 0;
+    private int i = 0;
 
     public ReminderServer(int seconds, DataMeasurement _dataMeasurement, RTInputStream _RTin) {
         this.RTin = _RTin;
         this.dataMeasurement = _dataMeasurement;
-        
+
         timer = new Timer();
         //timer.schedule(new RemindTask(), 0, seconds);
-        timer.scheduleAtFixedRate(new RemindTask(), 0, (seconds * 1000));
+        timer.scheduleAtFixedRate(new RemindTask(this.RTin), 0, (seconds * 1000));
 
+    }
+    
+    public void cancelTimer(){
+        timer.cancel();
     }
 
     class RemindTask extends TimerTask {
 
-        public RemindTask() {
+        private RTInputStream RTinput = null;
+
+        public RemindTask(RTInputStream _RTinput) {
+            this.RTinput = _RTinput;
             //Do nothihng in constructor
         }
 
         public void run() {
             try {
-                dataMeasurement.add_SampleSecond_up(RTin.getBytes(), System.currentTimeMillis());
-                System.out.println("REMINDER SERVER" + i+ " with " + "bytes=" + RTin.getBytes());
+                dataMeasurement.add_SampleSecond_up(this.RTinput.getBytes());
+                System.out.println("REMINDER SERVER" + i + " with " + "bytes=" + this.RTinput.getBytes());
                 i++;
             } catch (Exception ex) {
                 ex.printStackTrace();
             } finally {
-                RTin.clearBytes();
+                this.RTinput.clearBytes();
             }
         }
     }

@@ -38,12 +38,15 @@ public class ClientThread extends Thread {
     private double AvaBW = 0;
     private Vector<Double> AvailableBW_up = null;
     private Vector<Double> AvailableBW_down = null;
-    private Vector<Double> ByteSecondAvgVector = null;
+    private Vector<Integer> ByteSecondVector = null;
 
     private int ID = 0;
     private int byteCnt = 0;
-    private int byteSecond = 0;
     private long runningTime = 30000;
+
+    private double lower_bound = 0;
+    private double Mean = 0;
+    private double upper_bound = 0;
 
     public ClientThread(int _ID, String _METHOD, Socket _clientSocket, DataMeasurement _dataMeasurement) {
         try {
@@ -57,7 +60,7 @@ public class ClientThread extends Thread {
             dataOut = new DataOutputStream(RTout);
             AvailableBW_up = new Vector<Double>();
             AvailableBW_down = new Vector<Double>();
-            ByteSecondAvgVector = new Vector<Double>();
+            ByteSecondVector = new Vector<Integer>();
         } catch (IOException ex) {
             System.err.println("Client Thread Failure:" + ex.getMessage());
         }
@@ -173,9 +176,7 @@ public class ClientThread extends Thread {
             //Initialize Timer
             if (isThreadMethod) {
                 reminderServer = new ReminderServer(1, this.dataMeasurement, this.RTin);
-                reminderServer.start();
             }
-            //long now = System.currentTimeMillis();
             while (System.currentTimeMillis() < _end) {
                 byteCnt = 0;
                 //Cycle to read each block
@@ -188,19 +189,13 @@ public class ClientThread extends Thread {
                             dataMeasurement.add_SampleReadTime(byteCnt, System.currentTimeMillis());
                         }
 
-//                        byteSecond += n;
-//                        if ((System.currentTimeMillis() >= (now + 1000)) && (METHOD.equalsIgnoreCase("MV_readVectorUP"))) {
-//                            now = System.currentTimeMillis();
-//                            dataMeasurement.add_SampleSecond_up(byteSecond, System.currentTimeMillis());
-//                            byteSecond = 0;
-//                        }
                     } else {
                         System.out.println("Read n<0");
                         break;
                     }
 
                     if (byteCnt < Constants.BLOCKSIZE) {
-                        System.out.println("Read " + n + " bytes");
+                        //System.out.println("Read " + n + " bytes");
                         //Keep reading MTU
                     } else {
                         //MTU is finished
@@ -217,7 +212,7 @@ public class ClientThread extends Thread {
             return false;
         } finally {
             if (isThreadMethod) {
-                reminderServer.timer.cancel();
+                reminderServer.cancelTimer();
             }
         }
 
@@ -380,7 +375,7 @@ public class ClientThread extends Thread {
     }
 
     private void Method_MV_Uplink_Server() {
-        
+
         //Parameters
         Constants.SOCKET_RCVBUF = 64000;
         Constants.SOCKET_RCVBUF = 64000;
@@ -397,7 +392,13 @@ public class ClientThread extends Thread {
             ex.printStackTrace();
         } finally {
             try {
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV-1secBytes", dataMeasurement.SampleSecond_up);
+                int total = 0;
+                for (int i = 0; i < dataMeasurement.SampleSecond_up.size(); i++) {
+                    total += dataMeasurement.SampleSecond_up.get(i);
+                }
+                System.err.println("Average: " + (total / dataMeasurement.SampleSecond_up.size()) + " Transfered: " + total);
+                Tstudent(dataMeasurement.SampleSecond_up);
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV-1secBytes", dataMeasurement.SampleSecond_up, total, Mean, lower_bound, upper_bound);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -423,18 +424,20 @@ public class ClientThread extends Thread {
     private void Method_MV_Report_Server() {
         //Receive Report - Sample Second Vector 
         dataMeasurement.SampleSecond_down.clear();
+        int total = 0;
         try {
             dataIn.readByte();
             int length = dataIn.readInt();
             for (int l = 0; l < length; l++) {
                 int bytecnt = dataIn.readInt();
-                long sampleTime = dataIn.readLong();
-                dataMeasurement.SampleSecond_down.add(new DataSecond(bytecnt, sampleTime));
+                dataMeasurement.SampleSecond_down.add(bytecnt);
+                total += bytecnt;
             }
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
-            writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV-1secBytes", dataMeasurement.SampleSecond_down);
+            Tstudent(dataMeasurement.SampleSecond_down);
+            writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV-1secBytes", dataMeasurement.SampleSecond_down, total, Mean, lower_bound, upper_bound);
             isAlgorithmDone = true;
             System.err.println("Method_MV_Server along with Report is done!");
         }
@@ -447,7 +450,8 @@ public class ClientThread extends Thread {
         Constants.BLOCKSIZE = 8000;
 
         //Measurements
-        dataMeasurement.SampleSecond_up.clear();
+        dataMeasurement.SampleReadTime.clear();
+        ByteSecondVector.clear();
         try {
             //Uplink
             dataOut.writeByte(1);
@@ -458,10 +462,12 @@ public class ClientThread extends Thread {
         } finally {
             try {
                 MovingAverageCalculation(dataMeasurement.SampleReadTime);
-                Tstudent(ByteSecondAvgVector);
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV_readVector-1secBytes", dataMeasurement.SampleReadTime);
-                dataMeasurement.SampleReadTime.clear();
-
+                Tstudent(ByteSecondVector);
+                int total = 0;
+                for (int i = 0; i < ByteSecondVector.size(); i++) {
+                    total += ByteSecondVector.get(i);
+                }
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV_readVector", ByteSecondVector, total, Mean, lower_bound, upper_bound);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -487,19 +493,26 @@ public class ClientThread extends Thread {
 
     private void Method_MV_Report_readVector_Server() {
         //Receive Report - Sample Second Vector 
-        dataMeasurement.SampleSecond_down.clear();
+        dataMeasurement.SampleReadTime.clear();
+        ByteSecondVector.clear();
         try {
             dataIn.readByte();
             int length = dataIn.readInt();
             for (int l = 0; l < length; l++) {
                 int bytecnt = dataIn.readInt();
                 long sampleTime = dataIn.readLong();
-                dataMeasurement.SampleSecond_down.add(new DataSecond(bytecnt, sampleTime));
+                dataMeasurement.SampleReadTime.add(new DataSecond(bytecnt, sampleTime));
             }
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
-            writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV_readVector-1secBytes", dataMeasurement.SampleSecond_down);
+            MovingAverageCalculation(dataMeasurement.SampleReadTime);
+            Tstudent(ByteSecondVector);
+            int total = 0;
+            for (int i = 0; i < ByteSecondVector.size(); i++) {
+                total += ByteSecondVector.get(i);
+            }
+            writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV_readVector", ByteSecondVector, total, Mean, lower_bound, upper_bound);
             isAlgorithmDone = true;
             System.err.println("Method_MV_readVector_Server along with Report is done!");
         }
@@ -590,7 +603,8 @@ public class ClientThread extends Thread {
 
     private void MovingAverageCalculation(Vector<DataSecond> Vector_Read_or_Write) {
         int i, j = 0, bytesTotal = 0;
-        ByteSecondAvgVector.clear();
+        double average = 0;
+        ByteSecondVector.clear();
         System.out.println("Size: " + Vector_Read_or_Write.size());
         for (i = 0; i < Vector_Read_or_Write.size(); i++) {
             bytesTotal = 0;
@@ -602,27 +616,26 @@ public class ClientThread extends Thread {
                 bytesTotal += Vector_Read_or_Write.get(j).bytesRead;
                 j++;
             }
-            if ((Vector_Read_or_Write.get(j).sampleTime - Vector_Read_or_Write.get(i).sampleTime) != 0) {
-                double average = bytesTotal / (Vector_Read_or_Write.get(j).sampleTime - Vector_Read_or_Write.get(i).sampleTime);
-                ByteSecondAvgVector.add(average);
-                System.out.println("Second Interval = [" + i + "," + j + "]" + " with bytesTotal=" + bytesTotal + "and Capacity=" + average);
-                i = j;
-            }
+            ByteSecondVector.add(bytesTotal);
+            //average = bytesTotal / (Vector_Read_or_Write.get(j).sampleTime - Vector_Read_or_Write.get(i).sampleTime);
+            System.out.println("Second Interval = [" + i + "," + j + "]" + " with bytesTotal=" + bytesTotal); // + "and Capacity=" + average);
+            i = j;
         }
     }
 
-    private void Tstudent(Vector<Double> Vector) {
+    private void Tstudent(Vector<Integer> Vector) {
         SummaryStatistics stats = new SummaryStatistics();
         for (int i = 0; i < Vector.size() - 1; i++) {
             stats.addValue(Vector.get(i));
         }
 
-        // Calculate 95% confidence interval
-        double ci = calcMeanCI(stats, 0.10);
-        System.out.println(String.format("Mean: %f", stats.getMean()));
-        double lower = stats.getMean() - ci;
-        double upper = stats.getMean() + ci;
-        System.out.println(String.format("Confidence Interval 10%%: %f, %f", lower, upper));
+        // Calculate 90% confidence interval
+        double ci = calcMeanCI(stats, 0.90);
+        Mean = stats.getMean();
+        System.out.println(String.format("Mean: %f", Mean));
+        lower_bound = stats.getMean() - ci;
+        upper_bound = stats.getMean() + ci;
+        System.out.println(String.format("Confidence Interval 90%%: %f, %f", lower_bound, upper_bound));
     }
 
     private static double calcMeanCI(SummaryStatistics stats, double level) {

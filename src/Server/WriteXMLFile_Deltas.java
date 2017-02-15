@@ -47,7 +47,7 @@ public class WriteXMLFile_Deltas {
             doc.appendChild(rootElement);
             
             //All delta vectors have the same size
-            for (int i = 0; i < deltaINVector.size(); i++) {
+            for (int i = 0; i < deltaINVector.size()-1; i++) {
                 String deltaIN = String.valueOf(deltaINVector.get(i));
                 String deltaOUT = String.valueOf(deltasOUTVector.get(i));
                 rootElement.appendChild(getSample(doc, String.valueOf(i), deltaIN,deltaOUT));
@@ -61,7 +61,7 @@ public class WriteXMLFile_Deltas {
             String date = DATE_FORMAT.format(now);
             String xmlName = name + "" + date;
             System.err.println("xmlName: " + xmlName);
-            StreamResult result = new StreamResult(new File("/Users/glazen/Desktop/Measurements/" + xmlName + ".xml"));
+            StreamResult result = new StreamResult(new File("/home/glazen/Desktop/Measurements/PGM/" + xmlName + ".xml"));
 
             // Output to console for testing
             // StreamResult result = new StreamResult(System.out);
