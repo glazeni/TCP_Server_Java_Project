@@ -41,9 +41,9 @@ public class ReminderServer extends Thread {
 
         public void run() {
             try {
-                System.err.println("REMINDER SERVER" + i);
-                i++;
                 dataMeasurement.add_SampleSecond_up(RTin.getBytes(), System.currentTimeMillis());
+                System.out.println("REMINDER SERVER" + i+ " with " + "bytes=" + RTin.getBytes());
+                i++;
             } catch (Exception ex) {
                 ex.printStackTrace();
             } finally {

@@ -32,7 +32,7 @@ public class ClientThread extends Thread {
     private DataMeasurement dataMeasurement = null;
     private ReminderServer reminderServer = null;
     private boolean isAlgorithmDone = false;
-
+    private boolean isThreadMethod;
     private String METHOD = null; //PGM-ProbeGapModel; PT-PacketTrain; MV-Moving Average; ACKTIMING-Write time Gap
 
     private double AvaBW = 0;
@@ -75,18 +75,22 @@ public class ClientThread extends Thread {
                     Method_PT();
                     break;
                 case "MV_Uplink":
+                    isThreadMethod = true;
                     Method_MV_Uplink_Server();
                     break;
                 case "MV_Downlink":
+                    isThreadMethod = true;
                     Method_MV_Downlink_Server();
                     break;
                 case "MV_Report":
                     Method_MV_Report_Server();
                     break;
                 case "MV_readVectorUP":
+                    isThreadMethod = false;
                     Method_MV_UP_readVector_Server();
                     break;
                 case "MV_readVectorDOWN":
+                    isThreadMethod = false;
                     Method_MV_DOWN_readVector_Server();
                     break;
                 case "MV_Report_readVector":
@@ -167,20 +171,20 @@ public class ClientThread extends Thread {
             int n = 0;
             System.out.println("\nuplink_Server_rcvInSeconds");
             //Initialize Timer
-            if (METHOD.equalsIgnoreCase("MV_Uplink")) {
+            if (isThreadMethod) {
                 reminderServer = new ReminderServer(1, this.dataMeasurement, this.RTin);
                 reminderServer.start();
             }
-            long now = System.currentTimeMillis();
+            //long now = System.currentTimeMillis();
             while (System.currentTimeMillis() < _end) {
                 byteCnt = 0;
                 //Cycle to read each block
                 do {
-                    n = RTin.read(rcv_buf, byteCnt, Constants.BLOCKSIZE - byteCnt);
+                    n = RTin.read(rcv_buf);
 
                     if (n > 0) {
                         byteCnt += n;
-                        if (METHOD.equalsIgnoreCase("MV_readVectorUP")) {
+                        if (!isThreadMethod) {
                             dataMeasurement.add_SampleReadTime(byteCnt, System.currentTimeMillis());
                         }
 
@@ -212,7 +216,7 @@ public class ClientThread extends Thread {
         } catch (IOException ex) {
             return false;
         } finally {
-            if (METHOD.equalsIgnoreCase("MV_Uplink")) {
+            if (isThreadMethod) {
                 reminderServer.timer.cancel();
             }
         }
@@ -376,9 +380,11 @@ public class ClientThread extends Thread {
     }
 
     private void Method_MV_Uplink_Server() {
+        
         //Parameters
-        Constants.SOCKET_RCVBUF = 14600;
-        Constants.SOCKET_RCVBUF = 14600;
+        Constants.SOCKET_RCVBUF = 64000;
+        Constants.SOCKET_RCVBUF = 64000;
+        Constants.BLOCKSIZE = 8000;
 
         //Measurements
         dataMeasurement.SampleSecond_up.clear();
@@ -401,8 +407,9 @@ public class ClientThread extends Thread {
 
     private void Method_MV_Downlink_Server() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 14600;
-        Constants.SOCKET_RCVBUF = 14600;
+        Constants.SOCKET_RCVBUF = 64000;
+        Constants.SOCKET_RCVBUF = 64000;
+        Constants.BLOCKSIZE = 8000;
         //Measurements
         try {
             //Downlink
@@ -435,8 +442,9 @@ public class ClientThread extends Thread {
 
     private void Method_MV_UP_readVector_Server() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 14600;
-        Constants.SOCKET_RCVBUF = 14600;
+        Constants.SOCKET_RCVBUF = 64000;
+        Constants.SOCKET_RCVBUF = 64000;
+        Constants.BLOCKSIZE = 8000;
 
         //Measurements
         dataMeasurement.SampleSecond_up.clear();
@@ -463,8 +471,9 @@ public class ClientThread extends Thread {
 
     private void Method_MV_DOWN_readVector_Server() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 14600;
-        Constants.SOCKET_RCVBUF = 14600;
+        Constants.SOCKET_RCVBUF = 64000;
+        Constants.SOCKET_RCVBUF = 64000;
+        Constants.BLOCKSIZE = 8000;
 
         //Measurements
         try {
@@ -593,10 +602,12 @@ public class ClientThread extends Thread {
                 bytesTotal += Vector_Read_or_Write.get(j).bytesRead;
                 j++;
             }
-            double average = bytesTotal / (Vector_Read_or_Write.get(j).sampleTime - Vector_Read_or_Write.get(i).sampleTime);
-            ByteSecondAvgVector.add(average);
-            System.out.println("Second Interval = [" + i + "," + j + "]" + " with bytesTotal=" + bytesTotal + "and Capacity=" + average);
-            i = j;
+            if ((Vector_Read_or_Write.get(j).sampleTime - Vector_Read_or_Write.get(i).sampleTime) != 0) {
+                double average = bytesTotal / (Vector_Read_or_Write.get(j).sampleTime - Vector_Read_or_Write.get(i).sampleTime);
+                ByteSecondAvgVector.add(average);
+                System.out.println("Second Interval = [" + i + "," + j + "]" + " with bytesTotal=" + bytesTotal + "and Capacity=" + average);
+                i = j;
+            }
         }
     }
 
@@ -626,5 +637,5 @@ public class ClientThread extends Thread {
             return Double.NaN;
         }
     }
-    
+
 }

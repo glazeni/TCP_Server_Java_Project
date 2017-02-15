@@ -40,10 +40,9 @@ public class ReminderClient extends Thread {
 
         public void run() {
             try {
-                System.err.println("REMINDER CLIENT" + i);
-                i++;
                 dataMeasurement.add_SampleSecond_down(RTin.getBytes(), System.currentTimeMillis());
-
+                System.out.println("REMINDER CLIENT" + i + " with " + "bytes=" + RTin.getBytes());
+                i++;
             } catch (Exception ex) {
                 ex.printStackTrace();
             } finally {

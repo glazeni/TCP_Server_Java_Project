@@ -38,10 +38,10 @@ public class TCPServer extends Thread {
             listenSocket = new ServerSocket(Constants.SERVERPORT);
             m_clientConnections = new ClientThread[MAX_CLIENTS];
             //ALGORITHM and ALGORITHM_UP are the same except for PGM and PT Methods in which there are just 1 TCP connection for Uplink and Downlink
-            ALGORITHM = "MV_readVectorUP";
+            ALGORITHM = "MV_Uplink";
             //Algorithms defined for Downlink and Report
-            ALGORITHM_DOWN = "MV_readVectorDOWN";
-            ALGORITHM_REPORT = "MV_Report_readVector";
+            ALGORITHM_DOWN = "MV_Uplink";
+            ALGORITHM_REPORT = "MV_Uplink";
         } catch (Exception ex) {
             ex.printStackTrace();
         }

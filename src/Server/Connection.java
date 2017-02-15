@@ -24,6 +24,7 @@ public class Connection extends Thread {
     private ReminderClient reminderClient = null;
     private int byteCnt = 0;
     private int byteSecond = 0;
+    private boolean isThreadMethod;
     private String METHOD = null;
     private double AvaBW = 0;
     private Vector<Double> AvailableBW = null;
@@ -58,18 +59,22 @@ public class Connection extends Thread {
                     Method_PT();
                     break;
                 case "MV_Uplink":
+                    isThreadMethod = true;
                     Method_MV_Uplink_Client();
                     break;
                 case "MV_Downlink":
+                    isThreadMethod = true;
                     Method_MV_Downlink_Client();
                     break;
                 case "MV_Report":
                     Method_MV_Report_Client();
                     break;
                 case "MV_readVectorUP":
+                    isThreadMethod = false;
                     Method_MV_UP_readVector_Client();
                     break;
                 case "MV_readVectorDOWN":
+                    isThreadMethod = false;
                     Method_MV_DOWN_readVector_Client();
                     break;
                 case "MV_Report_readVector":
@@ -143,11 +148,11 @@ public class Connection extends Thread {
             int n = 0;
             System.out.println("\n downlink_Client_rcvInSeconds");
             //Initialize Timer
-            if (METHOD.equalsIgnoreCase("MV_Downlink")) {
+            if (isThreadMethod) {
                 reminderClient = new ReminderClient(1, this.dataMeasurement, this.RTin);
                 reminderClient.start();
             }
-            long now = System.currentTimeMillis();
+            //long now = System.currentTimeMillis();
             while (System.currentTimeMillis() < _end) {
 
                 byteCnt = 0;
@@ -157,7 +162,7 @@ public class Connection extends Thread {
 
                     if (n > 0) {
                         byteCnt += n;
-                        if (METHOD.equalsIgnoreCase("MV_readVectorDOWN")) {
+                        if (!isThreadMethod) {
                             dataMeasurement.add_SampleReadTime(byteCnt, System.currentTimeMillis());
                         }
 //                        byteSecond += n;
@@ -190,7 +195,7 @@ public class Connection extends Thread {
         } catch (IOException ex) {
             return false;
         } finally {
-            if (METHOD.equalsIgnoreCase("MV_Downlink")) {
+            if (isThreadMethod) {
                 reminderClient.timer.cancel();
             }
         }
@@ -335,8 +340,9 @@ public class Connection extends Thread {
 
     private void Method_MV_Uplink_Client() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 14600;
-        Constants.SOCKET_RCVBUF = 14600;
+        Constants.SOCKET_RCVBUF = 64000;
+        Constants.SOCKET_RCVBUF = 64000;
+        Constants.BLOCKSIZE = 8000;
 
         //Measurements
         try {
@@ -352,8 +358,8 @@ public class Connection extends Thread {
                 TCP_param = new TCP_Properties(s_down);
                 dataOut = new DataOutputStream(s_down.getOutputStream());
                 dataOut.writeInt(this.ID);
-                String cmd = "iperf3 -p 11008 -i 1 -N -w 14600 -l 1460 -c 193.136.127.218";
-                RunShellCommandFromJava(cmd);
+                //String cmd = "iperf3 -p 11008 -i 1 -N -w 14600 -l 1460 -c 193.136.127.218";
+                //RunShellCommandFromJava(cmd);
                 Thread c = new Connection(this.ID, s_down, this.dataMeasurement);
                 c.start();
             } catch (IOException ex) {
@@ -365,8 +371,9 @@ public class Connection extends Thread {
 
     private void Method_MV_Downlink_Client() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 14600;
-        Constants.SOCKET_RCVBUF = 14600;
+        Constants.SOCKET_RCVBUF = 64000;
+        Constants.SOCKET_RCVBUF = 64000;
+        Constants.BLOCKSIZE = 8000;
 
         //Measurements
         dataMeasurement.SampleSecond_down.clear();
@@ -384,8 +391,8 @@ public class Connection extends Thread {
                 TCP_param = new TCP_Properties(s_report);
                 dataOut = new DataOutputStream(s_report.getOutputStream());
                 dataOut.writeInt(this.ID);
-                String cmd = "iperf3 -p 11008 -i 1 -N -w 14600 -l 1460 -c 193.136.127.218";
-                RunShellCommandFromJava(cmd);
+//                String cmd = "iperf3 -p 11008 -i 1 -N -w 14600 -l 1460 -c 193.136.127.218";
+//                RunShellCommandFromJava(cmd);
                 Thread c = new Connection(this.ID, s_report, this.dataMeasurement);
                 c.start();
             } catch (IOException ex) {
@@ -415,8 +422,9 @@ public class Connection extends Thread {
 
     private void Method_MV_UP_readVector_Client() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 14600;
-        Constants.SOCKET_RCVBUF = 14600;
+        Constants.SOCKET_RCVBUF = 64000;
+        Constants.SOCKET_RCVBUF = 64000;
+        Constants.BLOCKSIZE = 8000;
 
         //Measurements
         try {
@@ -442,8 +450,9 @@ public class Connection extends Thread {
 
     private void Method_MV_DOWN_readVector_Client() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 14600;
-        Constants.SOCKET_RCVBUF = 14600;
+        Constants.SOCKET_RCVBUF = 64000;
+        Constants.SOCKET_RCVBUF = 64000;
+        Constants.BLOCKSIZE = 8000;
 
         //Measurements
         dataMeasurement.SampleSecond_down.clear();
