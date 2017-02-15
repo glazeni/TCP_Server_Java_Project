@@ -28,7 +28,7 @@ public class Connection extends Thread {
     private double AvaBW = 0;
     private Vector<Double> AvailableBW = null;
     private TCP_Properties TCP_param = null;
-    private long runningTime = 5000;
+    private long runningTime = 30000;
     private int ID = 0;
 
     public Connection(int _ID, Socket _s, DataMeasurement _dataMeasurement) {
@@ -285,8 +285,8 @@ public class Connection extends Thread {
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
-            String cmd = "iperf3 -p 11008 -i 1 -N -w 14600 -l 1460 -c 193.136.127.218";
-            RunShellCommandFromJava(cmd);
+//            String cmd = "iperf3 -p 11008 -i 1 -N -w 14600 -l 1460 -c 193.136.127.218";
+//            RunShellCommandFromJava(cmd);
             System.err.println("Method_PGM along with Report is done!");
         }
 
@@ -317,7 +317,6 @@ public class Connection extends Thread {
         }
         //Report Measurements - AvailableBW_down Vector
         try {
-            AvailableBW.clear();
             dataOut.writeByte(2);
             dataOut.writeInt(AvailableBW.size());
             for (int k = 0; k < AvailableBW.size(); k++) {
@@ -327,8 +326,8 @@ public class Connection extends Thread {
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
-            String cmd = "iperf3 -p 11008 -i 1 -N -w 14600 -l 1460 -c 193.136.127.218";
-            RunShellCommandFromJava(cmd);
+//            String cmd = "iperf3 -p 11008 -i 1 -N -w 14600 -l 1460 -c 193.136.127.218";
+//            RunShellCommandFromJava(cmd);
             System.err.println("Method_PT along with report is done!");
         }
 
