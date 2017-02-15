@@ -284,7 +284,8 @@ public class ClientThread extends Thread {
         //Parameters
         Constants.SOCKET_RCVBUF = 2920;
         Constants.SOCKET_RCVBUF = 2920;
-        Constants.NUMBER_BLOCKS = 100;
+        Constants.BLOCKSIZE = 1460;
+        Constants.NUMBER_BLOCKS = 1000;
         //Measurements
         try {
             //Uplink
@@ -332,9 +333,10 @@ public class ClientThread extends Thread {
 
     private void Method_PT() {
         //Parameters
-        Constants.NUMBER_BLOCKS = 10;
-        Constants.SOCKET_RCVBUF = 14600;
-        Constants.SOCKET_RCVBUF = 14600;
+        Constants.NUMBER_BLOCKS = 100;
+        Constants.SOCKET_RCVBUF = 146000;
+        Constants.SOCKET_RCVBUF = 146000;
+        Constants.BLOCKSIZE =1460;
 
         //Measurements
         try {
@@ -377,9 +379,9 @@ public class ClientThread extends Thread {
     private void Method_MV_Uplink_Server() {
 
         //Parameters
-        Constants.SOCKET_RCVBUF = 64000;
-        Constants.SOCKET_RCVBUF = 64000;
-        Constants.BLOCKSIZE = 8000;
+        Constants.SOCKET_RCVBUF = 11680;
+        Constants.SOCKET_RCVBUF = 11680;
+        Constants.BLOCKSIZE = 1460;
 
         //Measurements
         dataMeasurement.SampleSecond_up.clear();
@@ -408,9 +410,9 @@ public class ClientThread extends Thread {
 
     private void Method_MV_Downlink_Server() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 64000;
-        Constants.SOCKET_RCVBUF = 64000;
-        Constants.BLOCKSIZE = 8000;
+        Constants.SOCKET_RCVBUF = 11680;
+        Constants.SOCKET_RCVBUF = 11680;
+        Constants.BLOCKSIZE = 1460;
         //Measurements
         try {
             //Downlink
@@ -445,9 +447,9 @@ public class ClientThread extends Thread {
 
     private void Method_MV_UP_readVector_Server() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 64000;
-        Constants.SOCKET_RCVBUF = 64000;
-        Constants.BLOCKSIZE = 8000;
+        Constants.SOCKET_RCVBUF = 11680;
+        Constants.SOCKET_RCVBUF = 11680;
+        Constants.BLOCKSIZE = 1460;
 
         //Measurements
         dataMeasurement.SampleReadTime.clear();
@@ -471,15 +473,14 @@ public class ClientThread extends Thread {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-
         }
     }
 
     private void Method_MV_DOWN_readVector_Server() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 64000;
-        Constants.SOCKET_RCVBUF = 64000;
-        Constants.BLOCKSIZE = 8000;
+        Constants.SOCKET_RCVBUF = 11680;
+        Constants.SOCKET_RCVBUF = 11680;
+        Constants.BLOCKSIZE = 1460;
 
         //Measurements
         try {
@@ -521,8 +522,9 @@ public class ClientThread extends Thread {
 
     private void Method_ACKTimingUP_Server() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 14600;
-        Constants.SOCKET_RCVBUF = 14600;
+        Constants.SOCKET_RCVBUF = 11680;
+        Constants.SOCKET_RCVBUF = 11680;
+        Constants.BLOCKSIZE = 1460;
 
         //Measurements
         dataMeasurement.SampleSecond_up.clear();
@@ -538,8 +540,9 @@ public class ClientThread extends Thread {
 
     private void Method_ACKTimingDOWN_Server() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 14600;
-        Constants.SOCKET_RCVBUF = 14600;
+        Constants.SOCKET_RCVBUF = 11680;
+        Constants.SOCKET_RCVBUF = 11680;
+        Constants.BLOCKSIZE = 1460;
 
         //Measurements
         try {

@@ -244,7 +244,8 @@ public class Connection extends Thread {
         //Parameters
         Constants.SOCKET_RCVBUF = 2920;
         Constants.SOCKET_RCVBUF = 2920;
-        Constants.NUMBER_BLOCKS = 100;
+        Constants.BLOCKSIZE = 1460;
+        Constants.NUMBER_BLOCKS = 1000;
         //Measurements
         try {
             //Uplink
@@ -290,9 +291,10 @@ public class Connection extends Thread {
 
     private void Method_PT() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 14600;
-        Constants.SOCKET_RCVBUF = 14600;
-        Constants.NUMBER_BLOCKS = 10;
+        Constants.SOCKET_RCVBUF = 146000;
+        Constants.SOCKET_RCVBUF = 146000;
+        Constants.BLOCKSIZE =1460;
+        Constants.NUMBER_BLOCKS = 100;
 
         //Measurements
         try {
