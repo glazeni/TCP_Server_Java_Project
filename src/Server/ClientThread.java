@@ -33,6 +33,7 @@ public class ClientThread extends Thread {
     private ReminderServer reminderServer = null;
     private boolean isAlgorithmDone = false;
     private boolean isThreadMethod;
+    private boolean isIperfSettings;
     private String METHOD = null; //PGM-ProbeGapModel; PT-PacketTrain; MV-Moving Average; ACKTIMING-Write time Gap
 
     private double AvaBW = 0;
@@ -48,12 +49,13 @@ public class ClientThread extends Thread {
     private double Mean = 0;
     private double upper_bound = 0;
 
-    public ClientThread(int _ID, String _METHOD, Socket _clientSocket, DataMeasurement _dataMeasurement) {
+    public ClientThread(int _ID, String _METHOD, Socket _clientSocket, DataMeasurement _dataMeasurement, boolean _isIperfSettings) {
         try {
             this.ID = _ID;
             this.METHOD = _METHOD;
             this.clientSocket = _clientSocket;
             this.dataMeasurement = _dataMeasurement;
+            this.isIperfSettings = _isIperfSettings;
             RTin = new RTInputStream(clientSocket.getInputStream());
             RTout = new RTOutputStream(clientSocket.getOutputStream());
             dataIn = new DataInputStream(RTin);
@@ -181,7 +183,7 @@ public class ClientThread extends Thread {
                 byteCnt = 0;
                 //Cycle to read each block
                 do {
-                    n = RTin.read(rcv_buf);
+                    n = RTin.read(rcv_buf, byteCnt, Constants.BLOCKSIZE - byteCnt);
 
                     if (n > 0) {
                         byteCnt += n;
@@ -265,6 +267,7 @@ public class ClientThread extends Thread {
         }
         //Export to XML
         writeXMLFile_Deltas = new WriteXMLFile_Deltas(ID + " PGM-" + direction + "-", deltaINvector, deltaOUTvector);
+        writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors("PGM-" + direction, AvailableBW_up);
         System.out.println("Probe Gap Model Done!");
     }
 
@@ -333,10 +336,10 @@ public class ClientThread extends Thread {
 
     private void Method_PT() {
         //Parameters
-        Constants.NUMBER_BLOCKS = 100;
-        Constants.SOCKET_RCVBUF = 146000;
-        Constants.SOCKET_RCVBUF = 146000;
-        Constants.BLOCKSIZE =1460;
+        Constants.NUMBER_BLOCKS = 10;
+        Constants.SOCKET_RCVBUF = 14600;
+        Constants.SOCKET_RCVBUF = 14600;
+        Constants.BLOCKSIZE = 1460;
 
         //Measurements
         try {
@@ -379,10 +382,17 @@ public class ClientThread extends Thread {
     private void Method_MV_Uplink_Server() {
 
         //Parameters
-        Constants.SOCKET_RCVBUF = 11680;
-        Constants.SOCKET_RCVBUF = 11680;
-        Constants.BLOCKSIZE = 1460;
+        if (isIperfSettings) {
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.BLOCKSIZE = 8000;
+        } else {
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.BLOCKSIZE = 1460;
+        }
 
+        System.out.println("MV_Uplink_1secThread with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & PacketSize=" + Constants.BLOCKSIZE);
         //Measurements
         dataMeasurement.SampleSecond_up.clear();
         try {
@@ -400,7 +410,11 @@ public class ClientThread extends Thread {
                 }
                 System.err.println("Average: " + (total / dataMeasurement.SampleSecond_up.size()) + " Transfered: " + total);
                 Tstudent(dataMeasurement.SampleSecond_up);
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV-1secBytes", dataMeasurement.SampleSecond_up, total, Mean, lower_bound, upper_bound);
+                if (isIperfSettings) {
+                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV-1secBytes", dataMeasurement.SampleSecond_up, total, Mean, lower_bound, upper_bound, "MV_1secThread/iperf_Settings/");
+                } else {
+                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV-1secBytes", dataMeasurement.SampleSecond_up, total, Mean, lower_bound, upper_bound, "MV_1secThread/thesis_Settings/");
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -410,9 +424,16 @@ public class ClientThread extends Thread {
 
     private void Method_MV_Downlink_Server() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 11680;
-        Constants.SOCKET_RCVBUF = 11680;
-        Constants.BLOCKSIZE = 1460;
+        if (isIperfSettings) {
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.BLOCKSIZE = 8000;
+        } else {
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.BLOCKSIZE = 1460;
+        }
+        System.out.println("MV_Downlink_1secThread with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & PacketSize=" + Constants.BLOCKSIZE);
         //Measurements
         try {
             //Downlink
@@ -439,7 +460,11 @@ public class ClientThread extends Thread {
             ex.printStackTrace();
         } finally {
             Tstudent(dataMeasurement.SampleSecond_down);
-            writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV-1secBytes", dataMeasurement.SampleSecond_down, total, Mean, lower_bound, upper_bound);
+            if (isIperfSettings) {
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV-1secBytes", dataMeasurement.SampleSecond_down, total, Mean, lower_bound, upper_bound, "MV_1secThread/iperf_Settings/");
+            } else {
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV-1secBytes", dataMeasurement.SampleSecond_down, total, Mean, lower_bound, upper_bound, "MV_1secThread/thesis_Settings/");
+            }
             isAlgorithmDone = true;
             System.err.println("Method_MV_Server along with Report is done!");
         }
@@ -447,10 +472,17 @@ public class ClientThread extends Thread {
 
     private void Method_MV_UP_readVector_Server() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 11680;
-        Constants.SOCKET_RCVBUF = 11680;
-        Constants.BLOCKSIZE = 1460;
-
+        if (isIperfSettings) {
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.BLOCKSIZE = 8000;
+        } else {
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.BLOCKSIZE = 1460;
+        }
+        System.out.println("MV_Uplink_readVector with TCP_SND/RCV_Windows="+Constants.SOCKET_RCVBUF+" & PacketSize="+Constants.BLOCKSIZE);
+        
         //Measurements
         dataMeasurement.SampleReadTime.clear();
         ByteSecondVector.clear();
@@ -469,7 +501,11 @@ public class ClientThread extends Thread {
                 for (int i = 0; i < ByteSecondVector.size(); i++) {
                     total += ByteSecondVector.get(i);
                 }
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV_readVector", ByteSecondVector, total, Mean, lower_bound, upper_bound);
+                if (isIperfSettings) {
+                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV_readVector", ByteSecondVector, total, Mean, lower_bound, upper_bound, "MV_readVector/iperf_Settings/");
+                } else {
+                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV_readVector", ByteSecondVector, total, Mean, lower_bound, upper_bound, "MV_readVector/thesis_Settings/");
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -478,10 +514,17 @@ public class ClientThread extends Thread {
 
     private void Method_MV_DOWN_readVector_Server() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 11680;
-        Constants.SOCKET_RCVBUF = 11680;
-        Constants.BLOCKSIZE = 1460;
-
+        if (isIperfSettings) {
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.BLOCKSIZE = 8000;
+        } else {
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.BLOCKSIZE = 1460;
+        }
+        
+        System.out.println("MV_Downlink_readVector with TCP_SND/RCV_Windows="+Constants.SOCKET_RCVBUF+" & PacketSize="+Constants.BLOCKSIZE);
         //Measurements
         try {
             //Uplink
@@ -510,11 +553,15 @@ public class ClientThread extends Thread {
             MovingAverageCalculation(dataMeasurement.SampleReadTime);
             Tstudent(ByteSecondVector);
             int total = 0;
-            
+
             for (int i = 0; i < ByteSecondVector.size(); i++) {
                 total += ByteSecondVector.get(i);
             }
-            writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV_readVector", ByteSecondVector, total, Mean, lower_bound, upper_bound);
+            if (isIperfSettings) {
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV_readVector", ByteSecondVector, total, Mean, lower_bound, upper_bound, "MV_readVector/iperf_Settings/");
+            } else {
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV_readVector", ByteSecondVector, total, Mean, lower_bound, upper_bound, "MV_readVector/thesis_Settings/");
+            }
             isAlgorithmDone = true;
             System.err.println("Method_MV_readVector_Server along with Report is done!");
         }
@@ -522,10 +569,16 @@ public class ClientThread extends Thread {
 
     private void Method_ACKTimingUP_Server() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 11680;
-        Constants.SOCKET_RCVBUF = 11680;
-        Constants.BLOCKSIZE = 1460;
-
+        if (isIperfSettings) {
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.BLOCKSIZE = 8000;
+        } else {
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.BLOCKSIZE = 1460;
+        }
+        System.out.println("ACKTiming_Uplink with TCP_SND/RCV_Windows="+Constants.SOCKET_RCVBUF+" & PacketSize="+Constants.BLOCKSIZE);
         //Measurements
         dataMeasurement.SampleSecond_up.clear();
         try {
@@ -540,10 +593,16 @@ public class ClientThread extends Thread {
 
     private void Method_ACKTimingDOWN_Server() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 11680;
-        Constants.SOCKET_RCVBUF = 11680;
-        Constants.BLOCKSIZE = 1460;
-
+        if (isIperfSettings) {
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.BLOCKSIZE = 8000;
+        } else {
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.BLOCKSIZE = 1460;
+        }
+        System.out.println("MV_Downlink_1secThread with TCP_SND/RCV_Windows="+Constants.SOCKET_RCVBUF+" & PacketSize="+Constants.BLOCKSIZE);
         //Measurements
         try {
             //Uplink

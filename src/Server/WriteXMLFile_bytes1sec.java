@@ -39,7 +39,7 @@ public class WriteXMLFile_bytes1sec {
     private String endTime = null;
     //DataMeasurement Measurement = null;
 
-    public WriteXMLFile_bytes1sec(String side, Vector<Integer> Samples, int TotalTransferedBytes, double Mean, double lower_bound, double upper_bound) {
+    public WriteXMLFile_bytes1sec(String side, Vector<Integer> Samples, int TotalTransferedBytes, double Mean, double lower_bound, double upper_bound, String directory) {
 
         try {
             //this.Measurement = _Measurement;
@@ -90,7 +90,7 @@ public class WriteXMLFile_bytes1sec {
             String date = DATE_FORMAT.format(now);
             String xmlName = side + "" + date;
             System.err.println("xmlName: " + xmlName);
-            StreamResult result = new StreamResult(new File("/home/glazen/Desktop/Measurements/MV/" + xmlName + ".xml"));
+            StreamResult result = new StreamResult(new File("/home/glazen/Desktop/Measurements/MV/"+directory + xmlName + ".xml"));
 
             // Output to console for testing
             // StreamResult result = new StreamResult(System.out);

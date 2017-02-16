@@ -26,6 +26,8 @@ public class TCPServer extends Thread {
     private String ALGORITHM = null;
     private String ALGORITHM_DOWN = null;
     private String ALGORITHM_REPORT = null;
+    private boolean isIperfSettings;
+    private boolean isNagleDisable;
     private int ID = 0;
     private int MAX_CLIENTS = 30; // Depending on the Method, a client might need to use 3 sockets, so the MAX_CLIENTS is 10.
     private ClientThread[] m_clientConnections = null;
@@ -38,10 +40,12 @@ public class TCPServer extends Thread {
             listenSocket = new ServerSocket(Constants.SERVERPORT);
             m_clientConnections = new ClientThread[MAX_CLIENTS];
             //ALGORITHM and ALGORITHM_UP are the same except for PGM and PT Methods in which there are just 1 TCP connection for Uplink and Downlink
-            ALGORITHM = "ACKTiming_UP";
+            ALGORITHM = "MV_Uplink";
             //Algorithms defined for Downlink and Report
-            ALGORITHM_DOWN = "ACKTiming_DOWN";
-            ALGORITHM_REPORT = "ACKTiming_Report";
+            ALGORITHM_DOWN = "MV_Downlink";
+            ALGORITHM_REPORT = "MV_Report";
+            isIperfSettings = true; //true - Iperf Settings; false - Thesis Settings
+            isNagleDisable=false; //true - Enable Nagle's Algorithm; false - Disable Nagle's Algorithm
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -69,13 +73,13 @@ public class TCPServer extends Thread {
                     }
                 } catch (IOException ex) {
                     ID = new Random().nextInt();
-                    TCP_param = new TCP_Properties(clientSocket);
+                    TCP_param = new TCP_Properties(clientSocket,isNagleDisable);
                     clientSession.put(ID, clientSocket);
                     clientBoolean.put(ID, true);
                     clientMeasurement.put(ID, new DataMeasurement());
                     for (int i = 0; i < MAX_CLIENTS; i++) {
                         if (this.m_clientConnections[i] == null) {
-                            this.m_clientConnections[i] = new ClientThread(ID, ALGORITHM, clientSocket, clientMeasurement.get(ID));
+                            this.m_clientConnections[i] = new ClientThread(ID, ALGORITHM, clientSocket, clientMeasurement.get(ID), isIperfSettings);
                             this.m_clientConnections[i].start();
                             break;
                         }
@@ -89,14 +93,14 @@ public class TCPServer extends Thread {
 
                 if (clientSession.containsKey(ID) && clientBoolean.containsKey(ID) && !clientBoolean.get(ID)) {
                     //Report
-                    TCP_param = new TCP_Properties(clientSocket);
-                    Thread c = new ClientThread(this.ID, ALGORITHM_REPORT, clientSocket, clientMeasurement.get(ID));
+                    TCP_param = new TCP_Properties(clientSocket,isNagleDisable);
+                    Thread c = new ClientThread(this.ID, ALGORITHM_REPORT, clientSocket, clientMeasurement.get(ID), isIperfSettings);
                     c.start();
                 } else if (clientSession.containsKey(ID) && clientBoolean.containsKey(ID) && clientBoolean.get(ID)) {
                     //Downlink
                     clientBoolean.put(ID, false);
-                    TCP_param = new TCP_Properties(clientSocket);
-                    Thread c = new ClientThread(this.ID, ALGORITHM_DOWN, clientSocket, clientMeasurement.get(ID));
+                    TCP_param = new TCP_Properties(clientSocket,isNagleDisable);
+                    Thread c = new ClientThread(this.ID, ALGORITHM_DOWN, clientSocket, clientMeasurement.get(ID), isIperfSettings);
                     c.start();
 
                 }

@@ -30,12 +30,16 @@ public class Connection extends Thread {
     private TCP_Properties TCP_param = null;
     private long runningTime = 30000;
     private int ID = 0;
+    private boolean isIperfSettings;
+    private boolean isNagleDisable;
 
-    public Connection(int _ID, Socket _s, DataMeasurement _dataMeasurement) {
+    public Connection(int _ID, Socket _s, DataMeasurement _dataMeasurement, boolean _isIperfSettings, boolean _isNagleDisable) {
         try {
             this.ID = _ID;
             this.s = _s;
             this.dataMeasurement = _dataMeasurement;
+            this.isIperfSettings = _isIperfSettings;
+            this.isNagleDisable = _isNagleDisable;
             RTin = new RTInputStream(s.getInputStream());
             RTout = new RTOutputStream(s.getOutputStream());
             dataIn = new DataInputStream(RTin);
@@ -273,7 +277,7 @@ public class Connection extends Thread {
                 dataOut.writeInt(dataMeasurement.deltaINVector_uplink.size());
                 dataOut.flush();
             }
-            //Send Delta Vectors
+            //Send Delta Vectorss
             for (int j = 0; j < dataMeasurement.deltaINVector_uplink.size(); j++) {
                 dataOut.writeLong(dataMeasurement.deltaINVector_uplink.get(j));
                 dataOut.writeLong(dataMeasurement.deltaOUTVector_downlink.get(j));
@@ -293,7 +297,7 @@ public class Connection extends Thread {
         //Parameters
         Constants.SOCKET_RCVBUF = 146000;
         Constants.SOCKET_RCVBUF = 146000;
-        Constants.BLOCKSIZE =1460;
+        Constants.BLOCKSIZE = 1460;
         Constants.NUMBER_BLOCKS = 100;
 
         //Measurements
@@ -333,9 +337,15 @@ public class Connection extends Thread {
 
     private void Method_MV_Uplink_Client() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 64000;
-        Constants.SOCKET_RCVBUF = 64000;
-        Constants.BLOCKSIZE = 8000;
+        if (isIperfSettings) {
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.BLOCKSIZE = 8000;
+        } else {
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.BLOCKSIZE = 1460;
+        }
 
         //Measurements
         try {
@@ -348,12 +358,12 @@ public class Connection extends Thread {
             try {
                 //Socket + Connection Downlink
                 s_down = new Socket(Constants.SERVER_IP, Constants.SERVERPORT);
-                TCP_param = new TCP_Properties(s_down);
+                TCP_param = new TCP_Properties(s_down, isNagleDisable);
                 dataOut = new DataOutputStream(s_down.getOutputStream());
                 dataOut.writeInt(this.ID);
                 //String cmd = "iperf3 -p 11008 -i 1 -N -w 14600 -l 1460 -c 193.136.127.218";
                 //RunShellCommandFromJava(cmd);
-                Thread c = new Connection(this.ID, s_down, this.dataMeasurement);
+                Thread c = new Connection(this.ID, s_down, this.dataMeasurement, isIperfSettings, isNagleDisable);
                 c.start();
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -364,9 +374,15 @@ public class Connection extends Thread {
 
     private void Method_MV_Downlink_Client() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 64000;
-        Constants.SOCKET_RCVBUF = 64000;
-        Constants.BLOCKSIZE = 8000;
+        if (isIperfSettings) {
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.BLOCKSIZE = 8000;
+        } else {
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.BLOCKSIZE = 1460;
+        }
 
         //Measurements
         dataMeasurement.SampleSecond_down.clear();
@@ -381,12 +397,12 @@ public class Connection extends Thread {
             try {
                 //Socket + Connection Report
                 s_report = new Socket(Constants.SERVER_IP, Constants.SERVERPORT);
-                TCP_param = new TCP_Properties(s_report);
+                TCP_param = new TCP_Properties(s_report, isNagleDisable);
                 dataOut = new DataOutputStream(s_report.getOutputStream());
                 dataOut.writeInt(this.ID);
 //                String cmd = "iperf3 -p 11008 -i 1 -N -w 14600 -l 1460 -c 193.136.127.218";
 //                RunShellCommandFromJava(cmd);
-                Thread c = new Connection(this.ID, s_report, this.dataMeasurement);
+                Thread c = new Connection(this.ID, s_report, this.dataMeasurement, isIperfSettings, isNagleDisable);
                 c.start();
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -413,9 +429,15 @@ public class Connection extends Thread {
 
     private void Method_MV_UP_readVector_Client() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 64000;
-        Constants.SOCKET_RCVBUF = 64000;
-        Constants.BLOCKSIZE = 8000;
+        if (isIperfSettings) {
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.BLOCKSIZE = 8000;
+        } else {
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.BLOCKSIZE = 1460;
+        }
 
         //Measurements
         try {
@@ -428,10 +450,10 @@ public class Connection extends Thread {
             try {
                 //Socket + Connection Downlink
                 s_down = new Socket(Constants.SERVER_IP, Constants.SERVERPORT);
-                TCP_param = new TCP_Properties(s_down);
+                TCP_param = new TCP_Properties(s_down, isNagleDisable);
                 dataOut = new DataOutputStream(s_down.getOutputStream());
                 dataOut.writeInt(this.ID);
-                Thread c = new Connection(this.ID, s_down, this.dataMeasurement);
+                Thread c = new Connection(this.ID, s_down, this.dataMeasurement, isIperfSettings, isNagleDisable);
                 c.start();
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -441,9 +463,15 @@ public class Connection extends Thread {
 
     private void Method_MV_DOWN_readVector_Client() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 64000;
-        Constants.SOCKET_RCVBUF = 64000;
-        Constants.BLOCKSIZE = 8000;
+        if (isIperfSettings) {
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.BLOCKSIZE = 8000;
+        } else {
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.BLOCKSIZE = 1460;
+        }
 
         //Measurements
         dataMeasurement.SampleReadTime.clear();
@@ -458,10 +486,10 @@ public class Connection extends Thread {
             try {
                 //Socket + Connection Report
                 s_report = new Socket(Constants.SERVER_IP, Constants.SERVERPORT);
-                TCP_param = new TCP_Properties(s_report);
+                TCP_param = new TCP_Properties(s_report, isNagleDisable);
                 dataOut = new DataOutputStream(s_report.getOutputStream());
                 dataOut.writeInt(this.ID);
-                Thread c = new Connection(this.ID, s_report, this.dataMeasurement);
+                Thread c = new Connection(this.ID, s_report, this.dataMeasurement, isIperfSettings, isNagleDisable);
                 c.start();
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -489,8 +517,15 @@ public class Connection extends Thread {
 
     private void Method_ACKTimingUP_Client() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 14600;
-        Constants.SOCKET_RCVBUF = 14600;
+        if (isIperfSettings) {
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.BLOCKSIZE = 8000;
+        } else {
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.BLOCKSIZE = 1460;
+        }
 
         //Measurements
         try {
@@ -503,10 +538,10 @@ public class Connection extends Thread {
             try {
                 //Socket + Connection Downlink
                 s_down = new Socket(Constants.SERVER_IP, Constants.SERVERPORT);
-                TCP_param = new TCP_Properties(s_down);
+                TCP_param = new TCP_Properties(s_down, isNagleDisable);
                 dataOut = new DataOutputStream(s_down.getOutputStream());
                 dataOut.writeInt(this.ID);
-                Thread c = new Connection(this.ID, s_down, this.dataMeasurement);
+                Thread c = new Connection(this.ID, s_down, this.dataMeasurement, isIperfSettings, isNagleDisable);
                 c.start();
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -516,8 +551,15 @@ public class Connection extends Thread {
 
     private void Method_ACKTimingDOWN_Client() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 14600;
-        Constants.SOCKET_RCVBUF = 14600;
+        if (isIperfSettings) {
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_RCVBUF = 64000;
+            Constants.BLOCKSIZE = 8000;
+        } else {
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_RCVBUF = 14600;
+            Constants.BLOCKSIZE = 1460;
+        }
 
         //Measurements
         try {
@@ -531,10 +573,10 @@ public class Connection extends Thread {
             try {
                 //Socket + Connection Report
                 s_report = new Socket(Constants.SERVER_IP, Constants.SERVERPORT);
-                TCP_param = new TCP_Properties(s_report);
+                TCP_param = new TCP_Properties(s_report, isNagleDisable);
                 dataOut = new DataOutputStream(s_report.getOutputStream());
                 dataOut.writeInt(this.ID);
-                Thread c = new Connection(this.ID, s_report, this.dataMeasurement);
+                Thread c = new Connection(this.ID, s_report, this.dataMeasurement, isIperfSettings, isNagleDisable);
                 c.start();
             } catch (IOException ex) {
                 ex.printStackTrace();
