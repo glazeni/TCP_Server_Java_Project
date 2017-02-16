@@ -87,7 +87,11 @@ public class TCPServer extends Thread {
                     //Send ID to the Client
                     DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
                     dos.writeInt(ID);
-
+                    dos.flush();
+                    dos.writeBoolean(isIperfSettings);
+                    dos.flush();
+                    dos.writeBoolean(isNagleDisable);
+                    dos.flush();
                     continue;
                 }
 
