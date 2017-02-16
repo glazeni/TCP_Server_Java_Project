@@ -4,12 +4,8 @@ package Server;
 
 import java.net.*;
 import java.io.*;
-import java.nio.channels.Selector;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class TCPServer extends Thread {
 
@@ -45,8 +41,8 @@ public class TCPServer extends Thread {
             ALGORITHM_DOWN = "MV_Downlink";
             ALGORITHM_REPORT = "MV_Report";
             isIperfSettings = true; //true - Iperf Settings; false - Thesis Settings
-            isNagleDisable=false; //true - Enable Nagle's Algorithm; false - Disable Nagle's Algorithm
-            RunShellCommandFromJava("iperf3 -s -p 20001");
+            isNagleDisable = false; //true - Enable Nagle's Algorithm; false - Disable Nagle's Algorithm
+            RunShellCommandFromJava("iperf3 -s -p 20001 > /home/glazen/Desktop/iperfServer" + ALGORITHM + ".txt");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -74,7 +70,7 @@ public class TCPServer extends Thread {
                     }
                 } catch (IOException ex) {
                     ID = new Random().nextInt();
-                    TCP_param = new TCP_Properties(clientSocket,isNagleDisable);
+                    TCP_param = new TCP_Properties(clientSocket, isNagleDisable);
                     clientSession.put(ID, clientSocket);
                     clientBoolean.put(ID, true);
                     clientMeasurement.put(ID, new DataMeasurement());
@@ -98,14 +94,14 @@ public class TCPServer extends Thread {
 
                 if (clientSession.containsKey(ID) && clientBoolean.containsKey(ID) && !clientBoolean.get(ID)) {
                     //Report
-                    TCP_param = new TCP_Properties(clientSocket,isNagleDisable);
-                    Thread c = new ClientThread(this.ID, ALGORITHM_REPORT, clientSocket, clientMeasurement.get(ID), isIperfSettings,isNagleDisable);
+                    TCP_param = new TCP_Properties(clientSocket, isNagleDisable);
+                    Thread c = new ClientThread(this.ID, ALGORITHM_REPORT, clientSocket, clientMeasurement.get(ID), isIperfSettings, isNagleDisable);
                     c.start();
                 } else if (clientSession.containsKey(ID) && clientBoolean.containsKey(ID) && clientBoolean.get(ID)) {
                     //Downlink
                     clientBoolean.put(ID, false);
-                    TCP_param = new TCP_Properties(clientSocket,isNagleDisable);
-                    Thread c = new ClientThread(this.ID, ALGORITHM_DOWN, clientSocket, clientMeasurement.get(ID), isIperfSettings,isNagleDisable);
+                    TCP_param = new TCP_Properties(clientSocket, isNagleDisable);
+                    Thread c = new ClientThread(this.ID, ALGORITHM_DOWN, clientSocket, clientMeasurement.get(ID), isIperfSettings, isNagleDisable);
                     c.start();
 
                 }
