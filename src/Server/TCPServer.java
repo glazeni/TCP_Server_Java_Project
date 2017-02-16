@@ -46,6 +46,7 @@ public class TCPServer extends Thread {
             ALGORITHM_REPORT = "MV_Report";
             isIperfSettings = true; //true - Iperf Settings; false - Thesis Settings
             isNagleDisable=false; //true - Enable Nagle's Algorithm; false - Disable Nagle's Algorithm
+            RunShellCommandFromJava("iperf3 -s -p 20001");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -79,7 +80,7 @@ public class TCPServer extends Thread {
                     clientMeasurement.put(ID, new DataMeasurement());
                     for (int i = 0; i < MAX_CLIENTS; i++) {
                         if (this.m_clientConnections[i] == null) {
-                            this.m_clientConnections[i] = new ClientThread(ID, ALGORITHM, clientSocket, clientMeasurement.get(ID), isIperfSettings);
+                            this.m_clientConnections[i] = new ClientThread(ID, ALGORITHM, clientSocket, clientMeasurement.get(ID), isIperfSettings, isNagleDisable);
                             this.m_clientConnections[i].start();
                             break;
                         }
@@ -98,13 +99,13 @@ public class TCPServer extends Thread {
                 if (clientSession.containsKey(ID) && clientBoolean.containsKey(ID) && !clientBoolean.get(ID)) {
                     //Report
                     TCP_param = new TCP_Properties(clientSocket,isNagleDisable);
-                    Thread c = new ClientThread(this.ID, ALGORITHM_REPORT, clientSocket, clientMeasurement.get(ID), isIperfSettings);
+                    Thread c = new ClientThread(this.ID, ALGORITHM_REPORT, clientSocket, clientMeasurement.get(ID), isIperfSettings,isNagleDisable);
                     c.start();
                 } else if (clientSession.containsKey(ID) && clientBoolean.containsKey(ID) && clientBoolean.get(ID)) {
                     //Downlink
                     clientBoolean.put(ID, false);
                     TCP_param = new TCP_Properties(clientSocket,isNagleDisable);
-                    Thread c = new ClientThread(this.ID, ALGORITHM_DOWN, clientSocket, clientMeasurement.get(ID), isIperfSettings);
+                    Thread c = new ClientThread(this.ID, ALGORITHM_DOWN, clientSocket, clientMeasurement.get(ID), isIperfSettings,isNagleDisable);
                     c.start();
 
                 }
@@ -125,4 +126,26 @@ public class TCPServer extends Thread {
         }
     }
 
+    private void RunShellCommandFromJava(String command) {
+
+        try {
+            Process proc = Runtime.getRuntime().exec(command);
+
+            // Read the output
+            BufferedReader reader
+                    = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                System.out.print(line + "\n");
+            }
+            try {
+                proc.waitFor();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
 }

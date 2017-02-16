@@ -356,13 +356,26 @@ public class Connection extends Thread {
             ex.printStackTrace();
         } finally {
             try {
-                //Socket + Connection Downlink
+                //Run Iperf
+                if (isIperfSettings && isNagleDisable) {
+                    String cmd = "iperf3 -p 11010 -i 1 -M -N -w 64000 -l 8000 -c 193.136.127.218";
+                    RunShellCommandFromJava(cmd);
+                } else if (isIperfSettings && !isNagleDisable) {
+                    String cmd = "iperf3 -p 11010 -i 1 -M -w 64000 -l 8000 -c 193.136.127.218";
+                    RunShellCommandFromJava(cmd);
+                } else if (!isIperfSettings && !isNagleDisable) {
+                    String cmd = "iperf3 -p 11010 -i 1 -M -w 14600 -l 1460 -c 193.136.127.218";
+                    RunShellCommandFromJava(cmd);
+
+                } else if (!isIperfSettings && isNagleDisable) {
+                    String cmd = "iperf3 -p 11010 -i 1 -M -N -w 14600 -l 1460 -c 193.136.127.218";
+                    RunShellCommandFromJava(cmd);
+                }
+                //Create new ClientThread for Downlink
                 s_down = new Socket(Constants.SERVER_IP, Constants.SERVERPORT);
                 TCP_param = new TCP_Properties(s_down, isNagleDisable);
                 dataOut = new DataOutputStream(s_down.getOutputStream());
                 dataOut.writeInt(this.ID);
-                //String cmd = "iperf3 -p 11008 -i 1 -N -w 14600 -l 1460 -c 193.136.127.218";
-                //RunShellCommandFromJava(cmd);
                 Thread c = new Connection(this.ID, s_down, this.dataMeasurement, isIperfSettings, isNagleDisable);
                 c.start();
             } catch (IOException ex) {
@@ -395,13 +408,25 @@ public class Connection extends Thread {
             ex.printStackTrace();
         } finally {
             try {
-                //Socket + Connection Report
+                //Run Iperf
+                if (isIperfSettings && isNagleDisable) {
+                    String cmd = "iperf3 -p 11010 -i 1 -M -N -w 64000 -l 8000 -c 193.136.127.218";
+                    RunShellCommandFromJava(cmd);
+                } else if (isIperfSettings && !isNagleDisable) {
+                    String cmd = "iperf3 -p 11010 -i 1 -M -w 64000 -l 8000 -c 193.136.127.218";
+                    RunShellCommandFromJava(cmd);
+                } else if (!isIperfSettings && !isNagleDisable) {
+                    String cmd = "iperf3 -p 11010 -i 1 -M -w 14600 -l 1460 -c 193.136.127.218";
+                    RunShellCommandFromJava(cmd);
+                } else if (!isIperfSettings && isNagleDisable) {
+                    String cmd = "iperf3 -p 11010 -i 1 -M -N -w 14600 -l 1460 -c 193.136.127.218";
+                    RunShellCommandFromJava(cmd);
+                }
+                //Create new ClientThread for Report
                 s_report = new Socket(Constants.SERVER_IP, Constants.SERVERPORT);
                 TCP_param = new TCP_Properties(s_report, isNagleDisable);
                 dataOut = new DataOutputStream(s_report.getOutputStream());
                 dataOut.writeInt(this.ID);
-//                String cmd = "iperf3 -p 11008 -i 1 -N -w 14600 -l 1460 -c 193.136.127.218";
-//                RunShellCommandFromJava(cmd);
                 Thread c = new Connection(this.ID, s_report, this.dataMeasurement, isIperfSettings, isNagleDisable);
                 c.start();
             } catch (IOException ex) {
@@ -448,7 +473,22 @@ public class Connection extends Thread {
             ex.printStackTrace();
         } finally {
             try {
-                //Socket + Connection Downlink
+                //Run Iperf
+                if (isIperfSettings && isNagleDisable) {
+                    String cmd = "iperf3 -p 11010 -i 1 -M -N -w 64000 -l 8000 -c 193.136.127.218";
+                    RunShellCommandFromJava(cmd);
+                } else if (isIperfSettings && !isNagleDisable) {
+                    String cmd = "iperf3 -p 11010 -i 1 -M -w 64000 -l 8000 -c 193.136.127.218";
+                    RunShellCommandFromJava(cmd);
+                } else if (!isIperfSettings && !isNagleDisable) {
+                    String cmd = "iperf3 -p 11010 -i 1 -M -w 14600 -l 1460 -c 193.136.127.218";
+                    RunShellCommandFromJava(cmd);
+                } else if (!isIperfSettings && isNagleDisable) {
+                    String cmd = "iperf3 -p 11010 -i 1 -M -N -w 14600 -l 1460 -c 193.136.127.218";
+                    RunShellCommandFromJava(cmd);
+                }
+
+                //Create new ClientThread for Downlink
                 s_down = new Socket(Constants.SERVER_IP, Constants.SERVERPORT);
                 TCP_param = new TCP_Properties(s_down, isNagleDisable);
                 dataOut = new DataOutputStream(s_down.getOutputStream());
@@ -484,7 +524,22 @@ public class Connection extends Thread {
             ex.printStackTrace();
         } finally {
             try {
-                //Socket + Connection Report
+                //Run Iperf
+                if (isIperfSettings && isNagleDisable) {
+                    String cmd = "iperf3 -p 11010 -i 1 -M -N -w 64000 -l 8000 -c 193.136.127.218";
+                    RunShellCommandFromJava(cmd);
+                } else if (isIperfSettings && !isNagleDisable) {
+                    String cmd = "iperf3 -p 11010 -i 1 -M -w 64000 -l 8000 -c 193.136.127.218";
+                    RunShellCommandFromJava(cmd);
+                } else if (!isIperfSettings && !isNagleDisable) {
+                    String cmd = "iperf3 -p 11010 -i 1 -M -w 14600 -l 1460 -c 193.136.127.218";
+                    RunShellCommandFromJava(cmd);
+                } else if (!isIperfSettings && isNagleDisable) {
+                    String cmd = "iperf3 -p 11010 -i 1 -M -N -w 14600 -l 1460 -c 193.136.127.218";
+                    RunShellCommandFromJava(cmd);
+                }
+                
+                //Create new ClientThread for Report
                 s_report = new Socket(Constants.SERVER_IP, Constants.SERVERPORT);
                 TCP_param = new TCP_Properties(s_report, isNagleDisable);
                 dataOut = new DataOutputStream(s_report.getOutputStream());
