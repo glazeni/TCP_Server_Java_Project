@@ -14,6 +14,7 @@ public class TCPServer extends Thread {
     private TCP_Properties TCP_param = null;
     private ClientThread clientThread = null;
     private DataMeasurement dataMeasurement = null;
+    private RunShellCommands runShell = null;
     protected static HashMap<Integer, Socket> clientSession = null;
     protected static HashMap<Integer, Boolean> clientBoolean = null;
     protected static HashMap<Integer, DataMeasurement> clientMeasurement = null;
@@ -36,13 +37,13 @@ public class TCPServer extends Thread {
             listenSocket = new ServerSocket(Constants.SERVERPORT);
             m_clientConnections = new ClientThread[MAX_CLIENTS];
             //ALGORITHM and ALGORITHM_UP are the same except for PGM and PT Methods in which there are just 1 TCP connection for Uplink and Downlink
-            ALGORITHM = "MV_Uplink";
+            ALGORITHM = "PT";
             //Algorithms defined for Downlink and Report
-            ALGORITHM_DOWN = "MV_Downlink";
-            ALGORITHM_REPORT = "MV_Report";
+            //ALGORITHM_DOWN = "MV_Downlink";
+            //ALGORITHM_REPORT = "MV_Report";
             isIperfSettings = true; //true - Iperf Settings; false - Thesis Settings
             isNagleDisable = false; //true - Enable Nagle's Algorithm; false - Disable Nagle's Algorithm
-            RunShellCommandFromJava("iperf3 -s -p 20001 > /home/glazen/Desktop/iperfServer" + ALGORITHM + ".txt");
+            runShell = new RunShellCommands(ID, "iperf3 -s -p 20001","TCPServer", isIperfSettings, isNagleDisable);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -119,29 +120,6 @@ public class TCPServer extends Thread {
                     System.err.println("Closing ServerSocket failure" + ex.getMessage());
                 }
             }
-        }
-    }
-
-    private void RunShellCommandFromJava(String command) {
-
-        try {
-            Process proc = Runtime.getRuntime().exec(command);
-
-            // Read the output
-            BufferedReader reader
-                    = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-
-            String line = "";
-            while ((line = reader.readLine()) != null) {
-                System.out.print(line + "\n");
-            }
-            try {
-                proc.waitFor();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
         }
     }
 }

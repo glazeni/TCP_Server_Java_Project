@@ -39,7 +39,9 @@ public class ClientThread extends Thread {
     private int ID = 0;
     private int byteCnt = 0;
     private long runningTime = 30000;
-
+    long firstPacket = 0;
+    long lastPacket = 0;
+    
     private double lower_bound = 0;
     private double Mean = 0;
     private double upper_bound = 0;
@@ -137,6 +139,7 @@ public class ClientThread extends Thread {
             byte[] rcv_buf = new byte[Constants.BLOCKSIZE];
             int num_blocks = 0, n = 0;
             num_blocks = dataIn.readInt();
+            boolean isFirstPacket = true;
             System.out.println("\nuplink_Server_rcv with " + "Number Blocks=" + num_blocks);
             for (int i = 0; i < num_blocks; i++) {
                 byteCnt = 0;
@@ -146,6 +149,11 @@ public class ClientThread extends Thread {
 
                     if (n > 0) {
                         byteCnt += n;
+                        if (byteCnt >= 1460 && isFirstPacket) {
+                            firstPacket = System.currentTimeMillis();
+                            isFirstPacket = false;
+                            System.out.println("First Packet: " + firstPacket);
+                        }
                     }
 
                     if (byteCnt < Constants.BLOCKSIZE) {
@@ -156,6 +164,8 @@ public class ClientThread extends Thread {
                         break;
                     }
                 } while ((n > -1) && (byteCnt < Constants.BLOCKSIZE));
+                lastPacket = System.currentTimeMillis();
+                System.out.println("Last Packet: " + lastPacket);
                 if (n == -1) {
                     System.out.println("Exited with n=-1");
                     break;
@@ -270,9 +280,12 @@ public class ClientThread extends Thread {
 
     private double PacketTrain() {
         AvaBW = 0;
-        int length = RTin.readTimeVector.size() - 1;
-        double deltaN = RTin.readTimeVector.get(length) - RTin.readTimeVector.get(0);
-        int N = Constants.NUMBER_BLOCKS;
+//        int length = RTin.readTimeVector.size() - 1;
+//        double deltaN = RTin.readTimeVector.get(length) - RTin.readTimeVector.get(0);
+//        int N = Constants.NUMBER_BLOCKS;
+//        int L = Constants.BLOCKSIZE;
+        double deltaN = lastPacket - firstPacket;
+        int N = 10;
         int L = Constants.BLOCKSIZE;
         AvaBW = (((N - 1) * L) / deltaN);
         System.err.println("AvaBW: " + AvaBW);
@@ -339,28 +352,28 @@ public class ClientThread extends Thread {
 
     private void Method_PT() {
         //Parameters
-        Constants.NUMBER_BLOCKS = 10;
+        Constants.NUMBER_BLOCKS = 1;
         Constants.SOCKET_RCVBUF = 14600;
         Constants.SOCKET_RCVBUF = 14600;
-        Constants.BLOCKSIZE = 1460;
+        Constants.BLOCKSIZE = 14600;
 
         //Measurements
         try {
             //Uplink
             AvailableBW_up.clear();
             dataOut.writeByte(1);
-            for (int p = 0; p < 10; p++) {
+            for (int p = 0; p < 1; p++) {
                 System.err.println("UPLINK PACKET TRAIN ROUND: " + p);
                 uplink_Server_rcv();
                 AvailableBW_up.add(PacketTrain());
             }
 
-            //Downlink
-            dataOut.writeByte(2);
-            for (int p = 0; p < 10; p++) {
-                System.err.println("DOWNLINK PACKET TRAIN ROUND: " + p);
-                downlink_Server_snd();
-            }
+//            //Downlink
+//            dataOut.writeByte(2);
+//            for (int p = 0; p < 10; p++) {
+//                System.err.println("DOWNLINK PACKET TRAIN ROUND: " + p);
+//                downlink_Server_snd();
+//            }
         } catch (IOException ex) {
             ex.printStackTrace();
         }

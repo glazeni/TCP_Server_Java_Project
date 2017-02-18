@@ -22,6 +22,7 @@ public class Connection extends Thread {
     private DataOutputStream dataOut = null;
     private DataMeasurement dataMeasurement = null;
     private ReminderClient reminderClient = null;
+    private RunShellCommands runShell = null;
     private int byteCnt = 0;
     private boolean isThreadMethod;
     private String METHOD = null;
@@ -297,23 +298,23 @@ public class Connection extends Thread {
         //Parameters
         Constants.SOCKET_RCVBUF = 146000;
         Constants.SOCKET_RCVBUF = 146000;
-        Constants.BLOCKSIZE = 1460;
-        Constants.NUMBER_BLOCKS = 100;
+        Constants.BLOCKSIZE = 14600;
+        Constants.NUMBER_BLOCKS = 1;
 
         //Measurements
         try {
             //Uplink
             dataIn.readByte();
-            for (int p = 0; p < 10; p++) {
+            for (int p = 0; p < 1; p++) {
                 uplink_Client_snd();
             }
-            //Downlink
-            AvailableBW.clear();
-            dataIn.readByte();
-            for (int p = 0; p < 10; p++) {
-                downlink_Client_rcv();
-                AvailableBW.add(PacketTrain());
-            }
+//            //Downlink
+//            AvailableBW.clear();
+//            dataIn.readByte();
+//            for (int p = 0; p < 10; p++) {
+//                downlink_Client_rcv();
+//                AvailableBW.add(PacketTrain());
+//            }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -351,26 +352,25 @@ public class Connection extends Thread {
         try {
             //Uplink
             dataIn.readByte();
+            //Run Iperf
+            if (isIperfSettings && isNagleDisable) {
+                String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -N -w 64000 -l 8000 -c 193.136.127.218";
+                runShell = new RunShellCommands(ID, cmd,"Uplink", isIperfSettings, isNagleDisable);
+            } else if (isIperfSettings && !isNagleDisable) {
+                String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -w 64000 -l 8000 -c 193.136.127.218";
+                runShell = new RunShellCommands(ID, cmd,"Uplink", isIperfSettings, isNagleDisable);
+            } else if (!isIperfSettings && !isNagleDisable) {
+                String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -w 14600 -l 1460 -c 193.136.127.218";
+                runShell = new RunShellCommands(ID, cmd,"Uplink", isIperfSettings, isNagleDisable);
+            } else if (!isIperfSettings && isNagleDisable) {
+                String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -N -w 14600 -l 1460 -c 193.136.127.218";
+                runShell = new RunShellCommands(ID, cmd,"Uplink", isIperfSettings, isNagleDisable);
+            }
             uplink_Client_sndInSeconds();
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
             try {
-                //Run Iperf
-                if (isIperfSettings && isNagleDisable) {
-                    String cmd = "iperf3 -p 11010 -i 1 -M -N -w 64000 -l 8000 -c 193.136.127.218";
-                    RunShellCommandFromJava(cmd);
-                } else if (isIperfSettings && !isNagleDisable) {
-                    String cmd = "iperf3 -p 11010 -i 1 -M -w 64000 -l 8000 -c 193.136.127.218";
-                    RunShellCommandFromJava(cmd);
-                } else if (!isIperfSettings && !isNagleDisable) {
-                    String cmd = "iperf3 -p 11010 -i 1 -M -w 14600 -l 1460 -c 193.136.127.218";
-                    RunShellCommandFromJava(cmd);
-
-                } else if (!isIperfSettings && isNagleDisable) {
-                    String cmd = "iperf3 -p 11010 -i 1 -M -N -w 14600 -l 1460 -c 193.136.127.218";
-                    RunShellCommandFromJava(cmd);
-                }
                 //Create new ClientThread for Downlink
                 s_down = new Socket(Constants.SERVER_IP, Constants.SERVERPORT);
                 TCP_param = new TCP_Properties(s_down, isNagleDisable);
@@ -402,26 +402,26 @@ public class Connection extends Thread {
         try {
             //Downlink
             dataIn.readByte();
+            //Run Iperf
+            if (isIperfSettings && isNagleDisable) {
+                String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -N -w 64000 -l 8000 -c 193.136.127.218 -R";
+                runShell = new RunShellCommands(ID, cmd,"Downlink", isIperfSettings, isNagleDisable);
+            } else if (isIperfSettings && !isNagleDisable) {
+                String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -w 64000 -l 8000 -c 193.136.127.218 -R";
+                runShell = new RunShellCommands(ID, cmd,"Downlink", isIperfSettings, isNagleDisable);
+            } else if (!isIperfSettings && !isNagleDisable) {
+                String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -w 14600 -l 1460 -c 193.136.127.218 -R";
+                runShell = new RunShellCommands(ID, cmd,"Downlink", isIperfSettings, isNagleDisable);
+            } else if (!isIperfSettings && isNagleDisable) {
+                String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -N -w 14600 -l 1460 -c 193.136.127.218 -R";
+                runShell = new RunShellCommands(ID, cmd,"Downlink", isIperfSettings, isNagleDisable);
+            }
             long end = System.currentTimeMillis() + runningTime;
             downlink_Client_rcvInSeconds(end);
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
             try {
-                //Run Iperf
-                if (isIperfSettings && isNagleDisable) {
-                    String cmd = "iperf3 -p 11010 -i 1 -M -N -w 64000 -l 8000 -c 193.136.127.218";
-                    RunShellCommandFromJava(cmd);
-                } else if (isIperfSettings && !isNagleDisable) {
-                    String cmd = "iperf3 -p 11010 -i 1 -M -w 64000 -l 8000 -c 193.136.127.218";
-                    RunShellCommandFromJava(cmd);
-                } else if (!isIperfSettings && !isNagleDisable) {
-                    String cmd = "iperf3 -p 11010 -i 1 -M -w 14600 -l 1460 -c 193.136.127.218";
-                    RunShellCommandFromJava(cmd);
-                } else if (!isIperfSettings && isNagleDisable) {
-                    String cmd = "iperf3 -p 11010 -i 1 -M -N -w 14600 -l 1460 -c 193.136.127.218";
-                    RunShellCommandFromJava(cmd);
-                }
                 //Create new ClientThread for Report
                 s_report = new Socket(Constants.SERVER_IP, Constants.SERVERPORT);
                 TCP_param = new TCP_Properties(s_report, isNagleDisable);
@@ -468,26 +468,25 @@ public class Connection extends Thread {
         try {
             //Uplink
             dataIn.readByte();
+            //Run Iperf
+            if (isIperfSettings && isNagleDisable) {
+                String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -N -w 64000 -l 8000 -c 193.136.127.218";
+                runShell = new RunShellCommands(ID, cmd,"Uplink", isIperfSettings, isNagleDisable);
+            } else if (isIperfSettings && !isNagleDisable) {
+                String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -w 64000 -l 8000 -c 193.136.127.218";
+                runShell = new RunShellCommands(ID, cmd,"Uplink", isIperfSettings, isNagleDisable);
+            } else if (!isIperfSettings && !isNagleDisable) {
+                String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -w 14600 -l 1460 -c 193.136.127.218";
+                runShell = new RunShellCommands(ID, cmd,"Uplink", isIperfSettings, isNagleDisable);
+            } else if (!isIperfSettings && isNagleDisable) {
+                String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -N -w 14600 -l 1460 -c 193.136.127.218";
+                runShell = new RunShellCommands(ID, cmd,"Uplink", isIperfSettings, isNagleDisable);
+            }
             uplink_Client_sndInSeconds();
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
             try {
-                //Run Iperf
-                if (isIperfSettings && isNagleDisable) {
-                    String cmd = "iperf3 -p 11010 -i 1 -M -N -w 64000 -l 8000 -c 193.136.127.218";
-                    RunShellCommandFromJava(cmd);
-                } else if (isIperfSettings && !isNagleDisable) {
-                    String cmd = "iperf3 -p 11010 -i 1 -M -w 64000 -l 8000 -c 193.136.127.218";
-                    RunShellCommandFromJava(cmd);
-                } else if (!isIperfSettings && !isNagleDisable) {
-                    String cmd = "iperf3 -p 11010 -i 1 -M -w 14600 -l 1460 -c 193.136.127.218";
-                    RunShellCommandFromJava(cmd);
-                } else if (!isIperfSettings && isNagleDisable) {
-                    String cmd = "iperf3 -p 11010 -i 1 -M -N -w 14600 -l 1460 -c 193.136.127.218";
-                    RunShellCommandFromJava(cmd);
-                }
-
                 //Create new ClientThread for Downlink
                 s_down = new Socket(Constants.SERVER_IP, Constants.SERVERPORT);
                 TCP_param = new TCP_Properties(s_down, isNagleDisable);
@@ -518,27 +517,26 @@ public class Connection extends Thread {
         try {
             //Downlink
             dataIn.readByte();
+            //Run Iperf
+            if (isIperfSettings && isNagleDisable) {
+                String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -N -w 64000 -l 8000 -c 193.136.127.218 -R";
+                runShell = new RunShellCommands(ID, cmd,"Downlink", isIperfSettings, isNagleDisable);
+            } else if (isIperfSettings && !isNagleDisable) {
+                String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -w 64000 -l 8000 -c 193.136.127.218 -R";
+                runShell = new RunShellCommands(ID, cmd,"Downlink", isIperfSettings, isNagleDisable);
+            } else if (!isIperfSettings && !isNagleDisable) {
+                String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -w 14600 -l 1460 -c 193.136.127.218 -R";
+                runShell = new RunShellCommands(ID, cmd,"Downlink", isIperfSettings, isNagleDisable);
+            } else if (!isIperfSettings && isNagleDisable) {
+                String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -N -w 14600 -l 1460 -c 193.136.127.218 -R";
+                runShell = new RunShellCommands(ID, cmd,"Downlink", isIperfSettings, isNagleDisable);
+            }
             long end = System.currentTimeMillis() + runningTime;
             downlink_Client_rcvInSeconds(end);
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
             try {
-                //Run Iperf
-                if (isIperfSettings && isNagleDisable) {
-                    String cmd = "iperf3 -p 11010 -i 1 -M -N -w 64000 -l 8000 -c 193.136.127.218";
-                    RunShellCommandFromJava(cmd);
-                } else if (isIperfSettings && !isNagleDisable) {
-                    String cmd = "iperf3 -p 11010 -i 1 -M -w 64000 -l 8000 -c 193.136.127.218";
-                    RunShellCommandFromJava(cmd);
-                } else if (!isIperfSettings && !isNagleDisable) {
-                    String cmd = "iperf3 -p 11010 -i 1 -M -w 14600 -l 1460 -c 193.136.127.218";
-                    RunShellCommandFromJava(cmd);
-                } else if (!isIperfSettings && isNagleDisable) {
-                    String cmd = "iperf3 -p 11010 -i 1 -M -N -w 14600 -l 1460 -c 193.136.127.218";
-                    RunShellCommandFromJava(cmd);
-                }
-                
                 //Create new ClientThread for Report
                 s_report = new Socket(Constants.SERVER_IP, Constants.SERVERPORT);
                 TCP_param = new TCP_Properties(s_report, isNagleDisable);
@@ -655,28 +653,4 @@ public class Connection extends Thread {
             System.err.println("Method_ACKTiming_Client along with Report is done!");
         }
     }
-
-    private void RunShellCommandFromJava(String command) {
-
-        try {
-            Process proc = Runtime.getRuntime().exec(command);
-
-            // Read the output
-            BufferedReader reader
-                    = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-
-            String line = "";
-            while ((line = reader.readLine()) != null) {
-                System.out.print(line + "\n");
-            }
-            try {
-                proc.waitFor();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
 }
