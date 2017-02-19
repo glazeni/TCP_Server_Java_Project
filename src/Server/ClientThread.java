@@ -543,7 +543,6 @@ public class ClientThread extends Thread {
             ex.printStackTrace();
         } finally {
             try {
-                int total = 0;
                 ByteSecondVector = MovingAverageCalculation(dataMeasurement.SampleReadTime);
                 tstudent = new Tstudent(ByteSecondVector);
                 //Export to XML

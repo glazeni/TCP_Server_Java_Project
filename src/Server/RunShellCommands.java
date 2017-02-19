@@ -87,12 +87,4 @@ public class RunShellCommands extends Thread {
         }
 
     }
-
-    public Vector<Integer> getByteSecondShellVector_up() {
-        return dataMeasurement.ByteSecondShell_up;
-    }
-
-    public Vector<Integer> getByteSecondShellVector_down() {
-        return dataMeasurement.ByteSecondShell_down;
-    }
 }
