@@ -41,7 +41,7 @@ public class ClientThread extends Thread {
     private long runningTime = 30000;
     long firstPacket = 0;
     long lastPacket = 0;
-    
+
     private double lower_bound = 0;
     private double Mean = 0;
     private double upper_bound = 0;
@@ -472,8 +472,11 @@ public class ClientThread extends Thread {
     private void Method_MV_Report_Server() {
         //Receive Report - Sample Second Vector 
         dataMeasurement.SampleSecond_down.clear();
+        dataMeasurement.ByteSecondShell_down.clear();
+        dataMeasurement.ByteSecondShell_up.clear();
         int total = 0;
         try {
+            //Report MV_Downlink
             dataIn.readByte();
             int length = dataIn.readInt();
             for (int l = 0; l < length; l++) {
@@ -481,6 +484,18 @@ public class ClientThread extends Thread {
                 dataMeasurement.SampleSecond_down.add(bytecnt);
                 total += bytecnt;
             }
+            //Report Shell Vector from terminal Uplink
+            int length_shellUP = dataIn.readInt();
+            for(int b=0; b<length_shellUP; b++){
+                dataMeasurement.ByteSecondShell_up.add(dataIn.readInt());
+                System.out.println("ByteSecondShell_UP: "+ dataMeasurement.ByteSecondShell_up.get(b));
+            }
+            //Report Shell Vector from terminal Downlink
+            int length_shellDOWN = dataIn.readInt();
+            for(int b=0; b<length_shellDOWN; b++){
+                dataMeasurement.ByteSecondShell_down.add(dataIn.readInt());
+            }
+            
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {

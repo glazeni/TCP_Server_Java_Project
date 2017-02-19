@@ -349,22 +349,23 @@ public class Connection extends Thread {
         }
 
         //Measurements
+        dataMeasurement.ByteSecondShell_up.clear();
         try {
             //Uplink
             dataIn.readByte();
             //Run Iperf
             if (isIperfSettings && isNagleDisable) {
                 String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -N -w 64000 -l 8000 -c 193.136.127.218";
-                runShell = new RunShellCommands(ID, cmd,"Uplink", isIperfSettings, isNagleDisable);
+                runShell = new RunShellCommands(this.dataMeasurement, cmd);
             } else if (isIperfSettings && !isNagleDisable) {
                 String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -w 64000 -l 8000 -c 193.136.127.218";
-                runShell = new RunShellCommands(ID, cmd,"Uplink", isIperfSettings, isNagleDisable);
+                runShell = new RunShellCommands(this.dataMeasurement, cmd);
             } else if (!isIperfSettings && !isNagleDisable) {
                 String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -w 14600 -l 1460 -c 193.136.127.218";
-                runShell = new RunShellCommands(ID, cmd,"Uplink", isIperfSettings, isNagleDisable);
+                runShell = new RunShellCommands(this.dataMeasurement, cmd);
             } else if (!isIperfSettings && isNagleDisable) {
                 String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -N -w 14600 -l 1460 -c 193.136.127.218";
-                runShell = new RunShellCommands(ID, cmd,"Uplink", isIperfSettings, isNagleDisable);
+                runShell = new RunShellCommands(this.dataMeasurement, cmd);
             }
             uplink_Client_sndInSeconds();
         } catch (IOException ex) {
@@ -399,22 +400,23 @@ public class Connection extends Thread {
 
         //Measurements
         dataMeasurement.SampleSecond_down.clear();
+        dataMeasurement.ByteSecondShell_down.clear();
         try {
             //Downlink
             dataIn.readByte();
             //Run Iperf
             if (isIperfSettings && isNagleDisable) {
                 String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -N -w 64000 -l 8000 -c 193.136.127.218 -R";
-                runShell = new RunShellCommands(ID, cmd,"Downlink", isIperfSettings, isNagleDisable);
+                runShell = new RunShellCommands(this.dataMeasurement, cmd);
             } else if (isIperfSettings && !isNagleDisable) {
                 String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -w 64000 -l 8000 -c 193.136.127.218 -R";
-                runShell = new RunShellCommands(ID, cmd,"Downlink", isIperfSettings, isNagleDisable);
+                runShell = new RunShellCommands(this.dataMeasurement, cmd);
             } else if (!isIperfSettings && !isNagleDisable) {
                 String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -w 14600 -l 1460 -c 193.136.127.218 -R";
-                runShell = new RunShellCommands(ID, cmd,"Downlink", isIperfSettings, isNagleDisable);
+                runShell = new RunShellCommands(this.dataMeasurement, cmd);
             } else if (!isIperfSettings && isNagleDisable) {
                 String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -N -w 14600 -l 1460 -c 193.136.127.218 -R";
-                runShell = new RunShellCommands(ID, cmd,"Downlink", isIperfSettings, isNagleDisable);
+                runShell = new RunShellCommands(this.dataMeasurement, cmd);
             }
             long end = System.currentTimeMillis() + runningTime;
             downlink_Client_rcvInSeconds(end);
@@ -438,16 +440,26 @@ public class Connection extends Thread {
     private void Method_MV_Report_Client() {
         //Report 1secBytes Vector, sending size first 
         try {
+            //Report MV_Downlink 
             dataOut.writeByte(3);
             dataOut.writeInt(dataMeasurement.SampleSecond_down.size());
             for (int k = 0; k < dataMeasurement.SampleSecond_down.size(); k++) {
                 dataOut.writeInt(dataMeasurement.SampleSecond_down.get(k));
                 dataOut.flush();
             }
+            //Report Shell Vector from terminal Uplink
+            dataOut.writeInt(dataMeasurement.ByteSecondShell_up.size());
+            for(int b=0; b<dataMeasurement.ByteSecondShell_up.size(); b++){
+                dataOut.writeInt(dataMeasurement.ByteSecondShell_up.get(b));
+            }
+            //Report Shell Vector from terminal Downlink
+            dataOut.writeInt(dataMeasurement.ByteSecondShell_down.size());
+            for(int b=0; b<dataMeasurement.ByteSecondShell_down.size(); b++){
+                dataOut.writeInt(dataMeasurement.ByteSecondShell_down.get(b));
+            }
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
-            dataMeasurement.SampleSecond_down.clear();
             System.err.println("Method_MV_Client along with Report is done!");
         }
     }
@@ -471,16 +483,16 @@ public class Connection extends Thread {
             //Run Iperf
             if (isIperfSettings && isNagleDisable) {
                 String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -N -w 64000 -l 8000 -c 193.136.127.218";
-                runShell = new RunShellCommands(ID, cmd,"Uplink", isIperfSettings, isNagleDisable);
+                runShell = new RunShellCommands(this.dataMeasurement, cmd);
             } else if (isIperfSettings && !isNagleDisable) {
                 String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -w 64000 -l 8000 -c 193.136.127.218";
-                runShell = new RunShellCommands(ID, cmd,"Uplink", isIperfSettings, isNagleDisable);
+                runShell = new RunShellCommands(this.dataMeasurement, cmd);
             } else if (!isIperfSettings && !isNagleDisable) {
                 String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -w 14600 -l 1460 -c 193.136.127.218";
-                runShell = new RunShellCommands(ID, cmd,"Uplink", isIperfSettings, isNagleDisable);
+                runShell = new RunShellCommands(this.dataMeasurement, cmd);
             } else if (!isIperfSettings && isNagleDisable) {
                 String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -N -w 14600 -l 1460 -c 193.136.127.218";
-                runShell = new RunShellCommands(ID, cmd,"Uplink", isIperfSettings, isNagleDisable);
+                runShell = new RunShellCommands(this.dataMeasurement, cmd);
             }
             uplink_Client_sndInSeconds();
         } catch (IOException ex) {
@@ -520,16 +532,16 @@ public class Connection extends Thread {
             //Run Iperf
             if (isIperfSettings && isNagleDisable) {
                 String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -N -w 64000 -l 8000 -c 193.136.127.218 -R";
-                runShell = new RunShellCommands(ID, cmd,"Downlink", isIperfSettings, isNagleDisable);
+                runShell = new RunShellCommands(this.dataMeasurement, cmd);
             } else if (isIperfSettings && !isNagleDisable) {
                 String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -w 64000 -l 8000 -c 193.136.127.218 -R";
-                runShell = new RunShellCommands(ID, cmd,"Downlink", isIperfSettings, isNagleDisable);
+                runShell = new RunShellCommands(this.dataMeasurement, cmd);
             } else if (!isIperfSettings && !isNagleDisable) {
                 String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -w 14600 -l 1460 -c 193.136.127.218 -R";
-                runShell = new RunShellCommands(ID, cmd,"Downlink", isIperfSettings, isNagleDisable);
+                runShell = new RunShellCommands(this.dataMeasurement, cmd);
             } else if (!isIperfSettings && isNagleDisable) {
                 String cmd = "iperf3 -p 11010 -t 30 -i 1 -M -N -w 14600 -l 1460 -c 193.136.127.218 -R";
-                runShell = new RunShellCommands(ID, cmd,"Downlink", isIperfSettings, isNagleDisable);
+                runShell = new RunShellCommands(this.dataMeasurement, cmd);
             }
             long end = System.currentTimeMillis() + runningTime;
             downlink_Client_rcvInSeconds(end);

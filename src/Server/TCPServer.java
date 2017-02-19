@@ -43,7 +43,6 @@ public class TCPServer extends Thread {
             //ALGORITHM_REPORT = "MV_Report";
             isIperfSettings = true; //true - Iperf Settings; false - Thesis Settings
             isNagleDisable = false; //true - Enable Nagle's Algorithm; false - Disable Nagle's Algorithm
-            runShell = new RunShellCommands(ID, "iperf3 -s -p 20001","TCPServer", isIperfSettings, isNagleDisable);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -90,6 +89,7 @@ public class TCPServer extends Thread {
                     dos.flush();
                     dos.writeBoolean(isNagleDisable);
                     dos.flush();
+                    runShell = new RunShellCommands(clientMeasurement.get(ID), "iperf3 -s -p 20001");
                     continue;
                 }
 
