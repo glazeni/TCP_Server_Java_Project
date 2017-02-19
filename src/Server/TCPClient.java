@@ -18,9 +18,6 @@ public class TCPClient extends Thread {
 
     public TCPClient() {
         try {
-            //isIperfSettings = true; //true - Iperf Settings; false - Thesis Settings
-            //isNagleDisable = false; //true - Enable Nagle's Algorithm; false - Disable Nagle's Algorithm
-
             //Data Measurement
             dataMeasurement = new DataMeasurement();
             //Socket Uplink + Connection
@@ -35,8 +32,8 @@ public class TCPClient extends Thread {
             isIperfSettings = dis.readBoolean();
             isNagleDisable = dis.readBoolean();
             
-            System.err.println("IPERFSETTINGS: " + isIperfSettings);
-            System.err.println("ISNAGLESETTINGS: " + isNagleDisable);
+            System.err.println("IperfSettings: " + isIperfSettings);
+            System.err.println("IsNagleDisable: " + isNagleDisable);
             connection = new Connection(ID, s_up, dataMeasurement, isIperfSettings, isNagleDisable);
 
         } catch (Exception ex) {

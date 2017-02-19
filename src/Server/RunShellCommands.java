@@ -26,7 +26,6 @@ public class RunShellCommands extends Thread {
     private String part1 = null;
     private String part2 = null;
     private DataMeasurement dataMeasurement = null;
-    private int ID = 0;
     private int multiplier = 0;
     private boolean isUplink;
 
@@ -38,12 +37,12 @@ public class RunShellCommands extends Thread {
     @Override
     public void run() {
         try {
-            if(cmd.contains("-R")){
+            if (cmd.contains("-R")) {
                 isUplink = false;
-            }else{
+            } else {
                 isUplink = true;
             }
-            
+
             Process proc = Runtime.getRuntime().exec(cmd);
 
             // Read the output
@@ -70,12 +69,11 @@ public class RunShellCommands extends Thread {
                     }
                     part2 = parts[1].substring(0, parts[1].length() - 6);
                     int value = (int) Math.round(Float.parseFloat(part2) * multiplier);
-                    if(isUplink){
+                    if (isUplink) {
                         dataMeasurement.ByteSecondShell_up.add(value);
-                    }else{
+                    } else {
                         dataMeasurement.ByteSecondShell_down.add(value);
                     }
-                    
                     System.out.print("Value " + value + "\n");
                 }
             }
@@ -93,7 +91,7 @@ public class RunShellCommands extends Thread {
     public Vector<Integer> getByteSecondShellVector_up() {
         return dataMeasurement.ByteSecondShell_up;
     }
-    
+
     public Vector<Integer> getByteSecondShellVector_down() {
         return dataMeasurement.ByteSecondShell_down;
     }
