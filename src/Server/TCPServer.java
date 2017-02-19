@@ -14,7 +14,7 @@ public class TCPServer extends Thread {
     private TCP_Properties TCP_param = null;
     private ClientThread clientThread = null;
     private DataMeasurement dataMeasurement = null;
-    private RunShellCommands runShell = null;
+    private RunShellCommandsClient runShell = null;
     protected static HashMap<Integer, Socket> clientSession = null;
     protected static HashMap<Integer, Boolean> clientBoolean = null;
     protected static HashMap<Integer, DataMeasurement> clientMeasurement = null;
@@ -28,7 +28,7 @@ public class TCPServer extends Thread {
     private int ID = 0;
     private int MAX_CLIENTS = 30; // Depending on the Method, a client might need to use 3 sockets, so the MAX_CLIENTS is 10.
     private ClientThread[] m_clientConnections = null;
-
+    private Process proc= null;
     public TCPServer() {
         try {
             clientSession = new HashMap<>();
@@ -89,7 +89,7 @@ public class TCPServer extends Thread {
                     dos.flush();
                     dos.writeBoolean(isNagleDisable);
                     dos.flush();
-                    runShell = new RunShellCommands(clientMeasurement.get(ID), "iperf3 -s -p 20001");
+                    proc = Runtime.getRuntime().exec("iperf3 -s -p 20001");
                     continue;
                 }
 

@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Vector;
+import java.util.concurrent.CountDownLatch;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.exception.MathIllegalArgumentException;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
@@ -17,7 +18,7 @@ import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
  *
  * @author glazen
  */
-public class RunShellCommands extends Thread {
+public class RunShellCommandsClient extends Thread {
 
     private String cmd = null;
     private BufferedReader buffReader = null;
@@ -27,21 +28,19 @@ public class RunShellCommands extends Thread {
     private String part2 = null;
     private DataMeasurement dataMeasurement = null;
     private int multiplier = 0;
-    private boolean isUplink;
+    private boolean isUplinkTest;
+    private CountDownLatch latch=null;
 
-    public RunShellCommands(DataMeasurement _dataMeasurement, String _cmd) {
+    public RunShellCommandsClient(DataMeasurement _dataMeasurement, String _cmd, CountDownLatch _latch, boolean _isUplinkTest) {
         this.dataMeasurement = _dataMeasurement;
         this.cmd = _cmd;
+        this.latch = _latch;
+        this.isUplinkTest = _isUplinkTest;
     }
 
     @Override
     public void run() {
         try {
-            if (cmd.contains("-R")) {
-                isUplink = false;
-            } else {
-                isUplink = true;
-            }
 
             Process proc = Runtime.getRuntime().exec(cmd);
 
@@ -69,7 +68,7 @@ public class RunShellCommands extends Thread {
                     }
                     part2 = parts[1].substring(0, parts[1].length() - 6);
                     int value = (int) Math.round(Float.parseFloat(part2) * multiplier);
-                    if (isUplink) {
+                    if (isUplinkTest) {
                         dataMeasurement.ByteSecondShell_up.add(value);
                     } else {
                         dataMeasurement.ByteSecondShell_down.add(value);
@@ -77,6 +76,7 @@ public class RunShellCommands extends Thread {
                     System.out.print("Value " + value + "\n");
                 }
             }
+            latch.countDown();
             try {
                 proc.waitFor();
             } catch (Exception ex) {
