@@ -34,12 +34,9 @@ import org.w3c.dom.Node;
 
 public class WriteXMLFile_bytes1sec {
 
-    private String byteCount = null;
-    private String startTime = null;
-    private String endTime = null;
     //DataMeasurement Measurement = null;
 
-    public WriteXMLFile_bytes1sec(String side, Vector<Integer> Samples, int TotalTransferedBytes, Vector<Double> Mean, Vector<Double> lower_bound, Vector<Double> upper_bound, String directory) {
+    public WriteXMLFile_bytes1sec(String side, Vector<Integer> Samples, int TotalTransferedBytes, Vector<Double> MeanVector, Vector<Double> LowerBoundVector, Vector<Double> UpperBoundVector, String directory) {
 
         try {
             //this.Measurement = _Measurement;
@@ -50,37 +47,43 @@ public class WriteXMLFile_bytes1sec {
             Document doc = docBuilder.newDocument();
             Element rootElement = doc.createElement("Samples_1sec_bytes");
             doc.appendChild(rootElement);
-
+            //Append Samples
             for (int i = 0; i < Samples.size(); i++) {
                 String bytes = String.valueOf(Samples.get(i));
                 rootElement.appendChild(getSample(doc, String.valueOf(i), bytes));
             }
+            
+ 
+        
+        
             //Append Total Transfered Bytes
             String TotalTransfered = String.valueOf(TotalTransferedBytes);
-            Element node = doc.createElement("Total_Transfered_Bytes");
-            node.appendChild(doc.createTextNode(TotalTransfered));
-            rootElement.appendChild(node);
+            Element TotalBytes = doc.createElement("Total_Transfered_Bytes");
+            TotalBytes.appendChild(doc.createTextNode(TotalTransfered));
+            doc.appendChild(TotalBytes);
 
             //Append T Distribution Stats
             Element node_stats = doc.createElement("Statistics");
-            rootElement.appendChild(node_stats);
-
-            String mean = String.valueOf(Mean);
-            String lower = String.valueOf(lower_bound);
-            String upper = String.valueOf(upper_bound);
-
-            Element meanValue = doc.createElement("Mean");
-            meanValue.appendChild(doc.createTextNode(mean));
-            node_stats.appendChild(meanValue);
-
-            Element lowerValue = doc.createElement("Lower_Bound");
-            lowerValue.appendChild(doc.createTextNode(lower));
-            node_stats.appendChild(lowerValue);
-
-            Element upperValue = doc.createElement("Upper_Bound");
-            upperValue.appendChild(doc.createTextNode(upper));
-            node_stats.appendChild(upperValue);
-
+            doc.appendChild(node_stats);
+            //Append Mean Vector
+            for (int i = 0; i < MeanVector.size(); i++) {
+                String mean = String.valueOf(MeanVector.get(i));
+                Element meanInterval = doc.createElement("Mean");
+                meanInterval.setAttribute("id",String.valueOf(i));
+                node_stats.appendChild(getSampleElements(doc,meanInterval,"Mean" , mean));
+            }
+           
+            //Append LowerBoundVector
+            for (int i = 0; i < LowerBoundVector.size(); i++) {
+                String lower_bound = String.valueOf(LowerBoundVector.get(i));
+                node_stats.appendChild(getSample(doc, String.valueOf(i), lower_bound));
+            }
+            //Append UpperBoundVector
+            for (int i = 0; i < UpperBoundVector.size(); i++) {
+                String upper_bound = String.valueOf(UpperBoundVector.get(i));
+                node_stats.appendChild(getSample(doc, String.valueOf(i), upper_bound));
+            }
+            
             // write the content into xml file
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
@@ -90,7 +93,7 @@ public class WriteXMLFile_bytes1sec {
             String date = DATE_FORMAT.format(now);
             String xmlName = side + "" + date;
             System.err.println("xmlName: " + xmlName);
-            StreamResult result = new StreamResult(new File("/home/glazen/Desktop/Measurements/MV/"+directory + xmlName + ".xml"));
+            StreamResult result = new StreamResult(new File("/home/glazen/Desktop/Measurements/MV/" + directory + xmlName + ".xml"));
 
             // Output to console for testing
             // StreamResult result = new StreamResult(System.out);
@@ -112,6 +115,7 @@ public class WriteXMLFile_bytes1sec {
         sample.appendChild(getSampleElements(doc, sample, "byteCount", byteCount));
         return sample;
     }
+    
 
     // utility method to create text node
     private Node getSampleElements(Document doc, Element element, String name, String value) {
