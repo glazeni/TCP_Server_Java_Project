@@ -89,7 +89,7 @@ public class TCPServer extends Thread {
                     dos.flush();
                     dos.writeBoolean(isNagleDisable);
                     dos.flush();
-                    proc = Runtime.getRuntime().exec("iperf3 -s -p 20001");
+                    //proc = Runtime.getRuntime().exec("iperf3 -s -p 20001");
                     continue;
                 }
 

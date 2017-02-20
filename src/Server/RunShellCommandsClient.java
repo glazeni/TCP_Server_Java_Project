@@ -18,7 +18,7 @@ import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
  *
  * @author glazen
  */
-public class RunShellCommandsClient extends Thread {
+public class RunShellCommandsClient {
 
     private String cmd = null;
     private BufferedReader buffReader = null;
@@ -29,16 +29,13 @@ public class RunShellCommandsClient extends Thread {
     private DataMeasurement dataMeasurement = null;
     private int multiplier = 0;
     private boolean isUplinkTest;
-    private CountDownLatch latch=null;
 
-    public RunShellCommandsClient(DataMeasurement _dataMeasurement, String _cmd, CountDownLatch _latch, boolean _isUplinkTest) {
+    public RunShellCommandsClient(DataMeasurement _dataMeasurement, String _cmd, boolean _isUplinkTest) {
         this.dataMeasurement = _dataMeasurement;
         this.cmd = _cmd;
-        this.latch = _latch;
         this.isUplinkTest = _isUplinkTest;
     }
 
-    @Override
     public void run() {
         try {
 
@@ -76,7 +73,6 @@ public class RunShellCommandsClient extends Thread {
                     System.out.print("Value " + value + "\n");
                 }
             }
-            latch.countDown();
             try {
                 proc.waitFor();
             } catch (Exception ex) {

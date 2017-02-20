@@ -7,6 +7,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Random;
 import java.util.Vector;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.exception.MathIllegalArgumentException;
@@ -41,7 +42,7 @@ public class ClientThread extends Thread {
 
     private int ID = 0;
     private int byteCnt = 0;
-    private long runningTime = 30000;
+    private long runningTime = 5000;
     long firstPacket = 0;
     long lastPacket = 0;
 
@@ -66,6 +67,7 @@ public class ClientThread extends Thread {
     }
 
     //Runnable Data Receiver
+    @Override
     public void run() {
         try {
             dataOut.writeUTF(METHOD);
@@ -353,7 +355,7 @@ public class ClientThread extends Thread {
         //Parameters
         Constants.NUMBER_BLOCKS = 1;
         Constants.SOCKET_RCVBUF = 14600;
-        Constants.SOCKET_RCVBUF = 14600;
+        Constants.SOCKET_SNDBUF = 14600;
         Constants.BLOCKSIZE = 14600;
 
         //Measurements
@@ -361,8 +363,9 @@ public class ClientThread extends Thread {
             //Uplink
             AvailableBW_up.clear();
             dataOut.writeByte(1);
-            for (int p = 0; p < 1; p++) {
+            for (int p = 0; p < 10; p++) {
                 System.err.println("UPLINK PACKET TRAIN ROUND: " + p);
+                dataOut.writeByte(2);
                 uplink_Server_rcv();
                 AvailableBW_up.add(PacketTrain());
             }
@@ -404,11 +407,11 @@ public class ClientThread extends Thread {
         //Parameters
         if (isIperfSettings) {
             Constants.SOCKET_RCVBUF = 64000;
-            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_SNDBUF = 64000;
             Constants.BLOCKSIZE = 8000;
         } else {
             Constants.SOCKET_RCVBUF = 14600;
-            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_SNDBUF = 14600;
             Constants.BLOCKSIZE = 1460;
         }
 
@@ -427,13 +430,13 @@ public class ClientThread extends Thread {
                 tstudent = new Tstudent(dataMeasurement.SampleSecond_up);
                 System.err.println("Average: " + (tstudent.getTotalBytes() / dataMeasurement.SampleSecond_up.size()) + " Transfered: " + tstudent.getTotalBytes());
                 if (isIperfSettings && isNagleDisable) {
-                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV-1secBytes_NagleOFF", dataMeasurement.SampleSecond_up, tstudent.getTotalBytes(), tstudent.getMeanValue(), tstudent.getLowerBound(), tstudent.getUpperBound(), "MV_1secThread/iperf_Settings/");
+                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV-1secBytes_NagleOFF", dataMeasurement.SampleSecond_up, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_1secThread/iperf_Settings/");
                 } else if (isIperfSettings && !isNagleDisable) {
-                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV-1secBytes_NagleON", dataMeasurement.SampleSecond_up, tstudent.getTotalBytes(), tstudent.getMeanValue(), tstudent.getLowerBound(), tstudent.getUpperBound(), "MV_1secThread/iperf_Settings/");
+                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV-1secBytes_NagleON", dataMeasurement.SampleSecond_up, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_1secThread/iperf_Settings/");
                 } else if (!isIperfSettings && !isNagleDisable) {
-                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV-1secBytes_NagleON", dataMeasurement.SampleSecond_up, tstudent.getTotalBytes(), tstudent.getMeanValue(), tstudent.getLowerBound(), tstudent.getUpperBound(), "MV_1secThread/thesis_Settings/");
+                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV-1secBytes_NagleON", dataMeasurement.SampleSecond_up, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_1secThread/thesis_Settings/");
                 } else if (!isIperfSettings && isNagleDisable) {
-                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV-1secBytes_NagleOFF", dataMeasurement.SampleSecond_up, tstudent.getTotalBytes(), tstudent.getMeanValue(), tstudent.getLowerBound(), tstudent.getUpperBound(), "MV_1secThread/thesis_Settings/");
+                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV-1secBytes_NagleOFF", dataMeasurement.SampleSecond_up, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_1secThread/thesis_Settings/");
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -446,11 +449,11 @@ public class ClientThread extends Thread {
         //Parameters
         if (isIperfSettings) {
             Constants.SOCKET_RCVBUF = 64000;
-            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_SNDBUF = 64000;
             Constants.BLOCKSIZE = 8000;
         } else {
             Constants.SOCKET_RCVBUF = 14600;
-            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_SNDBUF = 14600;
             Constants.BLOCKSIZE = 1460;
         }
         System.out.println("MV_Downlink_1secThread with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & PacketSize=" + Constants.BLOCKSIZE);
@@ -497,21 +500,21 @@ public class ClientThread extends Thread {
             tstudent_shellUP = new Tstudent(dataMeasurement.ByteSecondShell_up);
             tstudent_shellDOWN = new Tstudent(dataMeasurement.ByteSecondShell_down);
             if (isIperfSettings && isNagleDisable) {
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV-1secBytes_NagleOFF", dataMeasurement.SampleSecond_down, tstudent.getTotalBytes(), tstudent.getMeanValue(), tstudent.getLowerBound(), tstudent.getUpperBound(), "MV_1secThread/iperf_Settings/");
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Uplink-MV-1secBytes_NagleOFF", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanValue(), tstudent_shellUP.getLowerBound(), tstudent_shellUP.getUpperBound(), "MV_1secThread/iperf_Settings/");
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Downlink-MV-1secBytes_NagleOFF", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanValue(), tstudent_shellDOWN.getLowerBound(), tstudent_shellDOWN.getUpperBound(), "MV_1secThread/iperf_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV-1secBytes_NagleOFF", dataMeasurement.SampleSecond_down, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_1secThread/iperf_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Uplink-MV-1secBytes_NagleOFF", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector(), "MV_1secThread/iperf_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Downlink-MV-1secBytes_NagleOFF", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector(), "MV_1secThread/iperf_Settings/");
             } else if (isIperfSettings && !isNagleDisable) {
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV-1secBytes_NagleON", dataMeasurement.SampleSecond_down, tstudent.getTotalBytes(), tstudent.getMeanValue(), tstudent.getLowerBound(), tstudent.getUpperBound(), "MV_1secThread/iperf_Settings/");
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Uplink-MV-1secBytes_NagleOFF", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanValue(), tstudent_shellUP.getLowerBound(), tstudent_shellUP.getUpperBound(), "MV_1secThread/iperf_Settings/");
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Downlink-MV-1secBytes_NagleOFF", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanValue(), tstudent_shellDOWN.getLowerBound(), tstudent_shellDOWN.getUpperBound(), "MV_1secThread/iperf_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV-1secBytes_NagleON", dataMeasurement.SampleSecond_down, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_1secThread/iperf_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Uplink-MV-1secBytes_NagleON", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector(), "MV_1secThread/iperf_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Downlink-MV-1secBytes_NagleON", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector(), "MV_1secThread/iperf_Settings/");
             } else if (!isIperfSettings && !isNagleDisable) {
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV-1secBytes_NagleON", dataMeasurement.SampleSecond_down, tstudent.getTotalBytes(), tstudent.getMeanValue(), tstudent.getLowerBound(), tstudent.getUpperBound(), "MV_1secThread/thesis_Settings/");
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Uplink-MV-1secBytes_NagleOFF", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanValue(), tstudent_shellUP.getLowerBound(), tstudent_shellUP.getUpperBound(), "MV_1secThread/iperf_Settings/");
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Downlink-MV-1secBytes_NagleOFF", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanValue(), tstudent_shellDOWN.getLowerBound(), tstudent_shellDOWN.getUpperBound(), "MV_1secThread/iperf_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV-1secBytes_NagleON", dataMeasurement.SampleSecond_down, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_1secThread/thesis_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Uplink-MV-1secBytes_NagleON", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector(), "MV_1secThread/thesis_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Downlink-MV-1secBytes_NagleON", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector(), "MV_1secThread/thesis_Settings/");
             } else if (!isIperfSettings && isNagleDisable) {
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV-1secBytes_NagleOFF", dataMeasurement.SampleSecond_down, tstudent.getTotalBytes(), tstudent.getMeanValue(), tstudent.getLowerBound(), tstudent.getUpperBound(), "MV_1secThread/thesis_Settings/");
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Uplink-MV-1secBytes_NagleOFF", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanValue(), tstudent_shellUP.getLowerBound(), tstudent_shellUP.getUpperBound(), "MV_1secThread/iperf_Settings/");
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Downlink-MV-1secBytes_NagleOFF", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanValue(), tstudent_shellDOWN.getLowerBound(), tstudent_shellDOWN.getUpperBound(), "MV_1secThread/iperf_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV-1secBytes_NagleOFF", dataMeasurement.SampleSecond_down, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_1secThread/thesis_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Uplink-MV-1secBytes_NagleOFF", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector(), "MV_1secThread/thesis_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Downlink-MV-1secBytes_NagleOFF", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector(), "MV_1secThread/thesis_Settings/");
             }
             isAlgorithmDone = true;
             System.err.println("Method_MV_Server along with Report is done!");
@@ -522,11 +525,11 @@ public class ClientThread extends Thread {
         //Parameters
         if (isIperfSettings) {
             Constants.SOCKET_RCVBUF = 64000;
-            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_SNDBUF = 64000;
             Constants.BLOCKSIZE = 8000;
         } else {
             Constants.SOCKET_RCVBUF = 14600;
-            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_SNDBUF = 14600;
             Constants.BLOCKSIZE = 1460;
         }
         System.out.println("MV_Uplink_readVector with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & PacketSize=" + Constants.BLOCKSIZE);
@@ -547,13 +550,13 @@ public class ClientThread extends Thread {
                 tstudent = new Tstudent(ByteSecondVector);
                 //Export to XML
                 if (isIperfSettings && isNagleDisable) {
-                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV_readVector_NagleOFF", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanValue(), tstudent.getLowerBound(), tstudent.getUpperBound(), "MV_readVector/iperf_Settings/");
+                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV_readVector_NagleOFF", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_readVector/iperf_Settings/");
                 } else if (isIperfSettings && !isNagleDisable) {
-                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV_readVector_NagleON", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanValue(), tstudent.getLowerBound(), tstudent.getUpperBound(), "MV_readVector/iperf_Settings/");
+                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV_readVector_NagleON", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_readVector/iperf_Settings/");
                 } else if (!isIperfSettings && !isNagleDisable) {
-                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV_readVector_NagleON", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanValue(), tstudent.getLowerBound(), tstudent.getUpperBound(), "MV_readVector/thesis_Settings/");
+                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV_readVector_NagleON", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_readVector/thesis_Settings/");
                 } else if (!isIperfSettings && isNagleDisable) {
-                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV_readVector_NagleOFF", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanValue(), tstudent.getLowerBound(), tstudent.getUpperBound(), "MV_readVector/thesis_Settings/");
+                    writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Uplink-MV_readVector_NagleOFF", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_readVector/thesis_Settings/");
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -565,11 +568,11 @@ public class ClientThread extends Thread {
         //Parameters
         if (isIperfSettings) {
             Constants.SOCKET_RCVBUF = 64000;
-            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_SNDBUF = 64000;
             Constants.BLOCKSIZE = 8000;
         } else {
             Constants.SOCKET_RCVBUF = 14600;
-            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_SNDBUF = 14600;
             Constants.BLOCKSIZE = 1460;
         }
 
@@ -618,24 +621,24 @@ public class ClientThread extends Thread {
             tstudent = new Tstudent(ByteSecondVector);
             tstudent_shellUP = new Tstudent(dataMeasurement.ByteSecondShell_up);
             tstudent_shellDOWN = new Tstudent(dataMeasurement.ByteSecondShell_down);
-            
+
             //Export to XML
             if (isIperfSettings && isNagleDisable) {
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV_readVector_NagleOFF", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanValue(), tstudent.getLowerBound(), tstudent.getUpperBound(), "MV_readVector/iperf_Settings/");
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Uplink-MV_readVector_NagleOFF", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanValue(), tstudent_shellUP.getLowerBound(), tstudent_shellUP.getUpperBound(), "MV_readVector/iperf_Settings/");
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Downlink-MV_readVector_NagleOFF", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanValue(), tstudent_shellDOWN.getLowerBound(), tstudent_shellDOWN.getUpperBound(), "MV_readVector/iperf_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV_readVector_NagleOFF", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_readVector/iperf_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Uplink-MV_readVector_NagleOFF", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector(), "MV_readVector/iperf_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Downlink-MV_readVector_NagleOFF", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector(), "MV_readVector/iperf_Settings/");
             } else if (isIperfSettings && !isNagleDisable) {
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV_readVector_NagleON", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanValue(), tstudent.getLowerBound(), tstudent.getUpperBound(), "MV_readVector/iperf_Settings/");
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Uplink-MV_readVector_NagleOFF", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanValue(), tstudent_shellUP.getLowerBound(), tstudent_shellUP.getUpperBound(), "MV_readVector/iperf_Settings/");
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Downlink-MV_readVector_NagleOFF", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanValue(), tstudent_shellDOWN.getLowerBound(), tstudent_shellDOWN.getUpperBound(), "MV_readVector/iperf_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV_readVector_NagleON", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_readVector/iperf_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Uplink-MV_readVector_NagleON", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector(), "MV_readVector/iperf_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Downlink-MV_readVector_NagleON", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector(), "MV_readVector/iperf_Settings/");
             } else if (!isIperfSettings && !isNagleDisable) {
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV_readVector_NagleON", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanValue(), tstudent.getLowerBound(), tstudent.getUpperBound(), "MV_readVector/thesis_Settings/");
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Uplink-MV_readVector_NagleOFF", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanValue(), tstudent_shellUP.getLowerBound(), tstudent_shellUP.getUpperBound(), "MV_readVector/iperf_Settings/");
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Downlink-MV_readVector_NagleOFF", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanValue(), tstudent_shellDOWN.getLowerBound(), tstudent_shellDOWN.getUpperBound(), "MV_readVector/iperf_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV_readVector_NagleON", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_readVector/thesis_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Uplink-MV_readVector_NagleON", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector(), "MV_readVector/thesis_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Downlink-MV_readVector_NagleON", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector(), "MV_readVector/thesis_Settings/");
             } else if (!isIperfSettings && isNagleDisable) {
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV_readVector_NagleOFF", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanValue(), tstudent.getLowerBound(), tstudent.getUpperBound(), "MV_readVector/thesis_Settings/");
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Uplink-MV_readVector_NagleOFF", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanValue(), tstudent_shellUP.getLowerBound(), tstudent_shellUP.getUpperBound(), "MV_readVector/iperf_Settings/");
-                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Downlink-MV_readVector_NagleOFF", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanValue(), tstudent_shellDOWN.getLowerBound(), tstudent_shellDOWN.getUpperBound(), "MV_readVector/iperf_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " Downlink-MV_readVector_NagleOFF", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_readVector/thesis_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Uplink-MV_readVector_NagleOFF", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector(), "MV_readVector/thesis_Settings/");
+                writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " iperfShell_Downlink-MV_readVector_NagleOFF", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector(), "MV_readVector/thesis_Settings/");
             }
             isAlgorithmDone = true;
             System.err.println("Method_MV_readVector_Server along with Report is done!");
@@ -646,11 +649,11 @@ public class ClientThread extends Thread {
         //Parameters
         if (isIperfSettings) {
             Constants.SOCKET_RCVBUF = 64000;
-            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_SNDBUF = 64000;
             Constants.BLOCKSIZE = 8000;
         } else {
             Constants.SOCKET_RCVBUF = 14600;
-            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_SNDBUF = 14600;
             Constants.BLOCKSIZE = 1460;
         }
         System.out.println("ACKTiming_Uplink with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & PacketSize=" + Constants.BLOCKSIZE);
@@ -670,11 +673,11 @@ public class ClientThread extends Thread {
         //Parameters
         if (isIperfSettings) {
             Constants.SOCKET_RCVBUF = 64000;
-            Constants.SOCKET_RCVBUF = 64000;
+            Constants.SOCKET_SNDBUF = 64000;
             Constants.BLOCKSIZE = 8000;
         } else {
             Constants.SOCKET_RCVBUF = 14600;
-            Constants.SOCKET_RCVBUF = 14600;
+            Constants.SOCKET_SNDBUF = 14600;
             Constants.BLOCKSIZE = 1460;
         }
         System.out.println("MV_Downlink_1secThread with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & PacketSize=" + Constants.BLOCKSIZE);
@@ -764,43 +767,55 @@ public class ClientThread extends Thread {
 
     private class Tstudent {
 
-        private int total = 0;
         private SummaryStatistics stats = null;
-        private double lower_bound = 0;
-        private double Mean = 0;
-        private double upper_bound = 0;
+        private Vector<Double> MeanVector = null;
+        private Vector<Double> LowerBoundVector = null;
+        private Vector<Double> UpperBoundVector = null;
+        private int total = 0;
 
         private Tstudent(Vector<Integer> Vector) {
             stats = new SummaryStatistics();
+            MeanVector = new Vector<Double>();
+            LowerBoundVector = new Vector<Double>();
+            UpperBoundVector = new Vector<Double>();
 
-            for (int i = 0; i < Vector.size() - 1; i++) {
-                stats.addValue(Vector.get(i));
+            //Caculate Capacity Graph in intervals from [0,1],[0,2] ... [0,30]
+            for (int i = 1; i < Vector.size(); i++) {
                 total += Vector.get(i);
+                stats.clear();
+                for (int j = 0; j <= i; j++) {
+                    stats.addValue(Vector.get(j));
+//                    System.out.println("Interval [" + j + "," + i + "]");
+                }
+                // Calculate 90% confidence interval
+                double ci = calcMeanCI(stats, 0.90);
+                double Mean = stats.getMean();
+                double lower_bound = stats.getMean() - ci;
+                double upper_bound = stats.getMean() + ci;
+                MeanVector.add(Mean);
+                LowerBoundVector.add(lower_bound);
+                UpperBoundVector.add(upper_bound);
+//                System.out.println("Total Bytes = " + total);
+//                System.out.println("Mean" + i + " = " + stats.getMean());
+//                System.out.println(String.format("Confidence Interval 90%%: %f, %f", lower_bound, upper_bound));
             }
-            // Calculate 90% confidence interval
-            double ci = calcMeanCI(stats, 0.90);
-            Mean = stats.getMean();
-            System.out.println(String.format("Mean: %f", Mean));
-            lower_bound = stats.getMean() - ci;
-            upper_bound = stats.getMean() + ci;
-            System.out.println(String.format("Confidence Interval 90%%: %f, %f", lower_bound, upper_bound));
-            //return total;
+            System.out.println("TotalTest: " + total);
         }
 
         public int getTotalBytes() {
             return total;
         }
 
-        public double getMeanValue() {
-            return Mean;
+        public Vector<Double> getMeanVector() {
+            return MeanVector;
         }
 
-        public double getLowerBound() {
-            return lower_bound;
+        public Vector<Double> getLowerBoundVector() {
+            return LowerBoundVector;
         }
 
-        public double getUpperBound() {
-            return upper_bound;
+        public Vector<Double> getUpperBoundVector() {
+            return UpperBoundVector;
         }
     }
 
@@ -808,8 +823,10 @@ public class ClientThread extends Thread {
         try {
             // Create T Distribution with N-1 degrees of freedom
             TDistribution tDist = new TDistribution(stats.getN() - 1);
+            System.out.println("Number: " + stats.getN());
             // Calculate critical value
             double critVal = tDist.inverseCumulativeProbability(1.0 - (1 - level) / 2);
+            System.out.println("Critical Value " + critVal);
             // Calculate confidence interval
             return critVal * stats.getStandardDeviation() / Math.sqrt(stats.getN());
         } catch (MathIllegalArgumentException e) {

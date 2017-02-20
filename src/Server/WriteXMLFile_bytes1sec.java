@@ -39,7 +39,7 @@ public class WriteXMLFile_bytes1sec {
     private String endTime = null;
     //DataMeasurement Measurement = null;
 
-    public WriteXMLFile_bytes1sec(String side, Vector<Integer> Samples, int TotalTransferedBytes, double Mean, double lower_bound, double upper_bound, String directory) {
+    public WriteXMLFile_bytes1sec(String side, Vector<Integer> Samples, int TotalTransferedBytes, Vector<Double> Mean, Vector<Double> lower_bound, Vector<Double> upper_bound, String directory) {
 
         try {
             //this.Measurement = _Measurement;
