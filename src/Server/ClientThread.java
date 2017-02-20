@@ -264,7 +264,7 @@ public class ClientThread extends Thread {
         AvailableBW_up.clear();
         int length = deltaINvector.size();
         int readVectorLength = RTin.readTimeVector.size() - 1;
-        double Capacity = RTin.getBytes() / (RTin.readTimeVector.get(readVectorLength) - RTin.readTimeVector.get(0));
+        double Capacity = RTin.getBytes2Bits()/ (RTin.readTimeVector.get(readVectorLength) - RTin.readTimeVector.get(0));
         //Calculate AvailableBW
         for (int i = 0; i < length; i++) {
             double deltaIN = deltaINvector.get(i);
@@ -754,7 +754,8 @@ public class ClientThread extends Thread {
                 if (j == Vector_Read_or_Write.size() - 1) {
                     break;
                 }
-                bytesTotal += Vector_Read_or_Write.get(j).bytesRead;
+                //Multiply by 8 to convert bytes to bits
+                bytesTotal += Vector_Read_or_Write.get(j).bytesRead * 8;
                 j++;
             }
             ByteSecondVector.add(bytesTotal);

@@ -48,8 +48,8 @@ public class ReminderServer extends Thread {
         @Override
         public void run() {
             try {
-                dataMeasurement.add_SampleSecond_up(this.RTinput.getBytes());
-                System.out.println("REMINDER SERVER" + i + " with " + "bytes=" + this.RTinput.getBytes());
+                dataMeasurement.add_SampleSecond_up(this.RTinput.getBytes2Bits());
+                System.out.println("REMINDER SERVER" + i + " with " + "bits=" + this.RTinput.getBytes2Bits());
                 i++;
             } catch (Exception ex) {
                 ex.printStackTrace();
