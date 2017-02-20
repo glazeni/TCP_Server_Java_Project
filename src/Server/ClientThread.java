@@ -42,7 +42,7 @@ public class ClientThread extends Thread {
 
     private int ID = 0;
     private int byteCnt = 0;
-    private long runningTime = 5000;
+    private long runningTime = 30000;
     long firstPacket = 0;
     long lastPacket = 0;
 
@@ -799,7 +799,6 @@ public class ClientThread extends Thread {
 //                System.out.println("Mean" + i + " = " + stats.getMean());
 //                System.out.println(String.format("Confidence Interval 90%%: %f, %f", lower_bound, upper_bound));
             }
-            System.out.println("TotalTest: " + total);
         }
 
         public int getTotalBytes() {
@@ -823,10 +822,8 @@ public class ClientThread extends Thread {
         try {
             // Create T Distribution with N-1 degrees of freedom
             TDistribution tDist = new TDistribution(stats.getN() - 1);
-            System.out.println("Number: " + stats.getN());
             // Calculate critical value
             double critVal = tDist.inverseCumulativeProbability(1.0 - (1 - level) / 2);
-            System.out.println("Critical Value " + critVal);
             // Calculate confidence interval
             return critVal * stats.getStandardDeviation() / Math.sqrt(stats.getN());
         } catch (MathIllegalArgumentException e) {
