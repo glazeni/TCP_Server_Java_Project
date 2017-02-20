@@ -35,7 +35,6 @@ import org.w3c.dom.Node;
 public class WriteXMLFile_bytes1sec {
 
     //DataMeasurement Measurement = null;
-
     public WriteXMLFile_bytes1sec(String side, Vector<Integer> Samples, int TotalTransferedBytes, Vector<Double> MeanVector, Vector<Double> LowerBoundVector, Vector<Double> UpperBoundVector, String directory) {
 
         try {
@@ -46,44 +45,39 @@ public class WriteXMLFile_bytes1sec {
             // root elements
             Document doc = docBuilder.newDocument();
             Element rootElement = doc.createElement("Samples_1sec_bytes");
+            Element node_stats = doc.createElement("Statistics");
+
             doc.appendChild(rootElement);
+            rootElement.appendChild(node_stats);
+
             //Append Samples
             for (int i = 0; i < Samples.size(); i++) {
                 String bytes = String.valueOf(Samples.get(i));
-                rootElement.appendChild(getSample(doc, String.valueOf(i), bytes));
+                rootElement.appendChild(getSample(doc, String.valueOf(i), "byteCount", bytes));
             }
-            
- 
-        
-        
+
             //Append Total Transfered Bytes
             String TotalTransfered = String.valueOf(TotalTransferedBytes);
-            Element TotalBytes = doc.createElement("Total_Transfered_Bytes");
-            TotalBytes.appendChild(doc.createTextNode(TotalTransfered));
-            doc.appendChild(TotalBytes);
+            node_stats.appendChild(getSampleElements(doc, node_stats, "TotalBytes", TotalTransfered));
 
             //Append T Distribution Stats
-            Element node_stats = doc.createElement("Statistics");
-            doc.appendChild(node_stats);
             //Append Mean Vector
             for (int i = 0; i < MeanVector.size(); i++) {
                 String mean = String.valueOf(MeanVector.get(i));
-                Element meanInterval = doc.createElement("Mean");
-                meanInterval.setAttribute("id",String.valueOf(i));
-                node_stats.appendChild(getSampleElements(doc,meanInterval,"Mean" , mean));
+                node_stats.appendChild(getSample(doc, String.valueOf(i), "Mean", mean));
             }
-           
+
             //Append LowerBoundVector
             for (int i = 0; i < LowerBoundVector.size(); i++) {
                 String lower_bound = String.valueOf(LowerBoundVector.get(i));
-                node_stats.appendChild(getSample(doc, String.valueOf(i), lower_bound));
+                node_stats.appendChild(getSample(doc, String.valueOf(i), "LowerBound", lower_bound));
             }
             //Append UpperBoundVector
             for (int i = 0; i < UpperBoundVector.size(); i++) {
                 String upper_bound = String.valueOf(UpperBoundVector.get(i));
-                node_stats.appendChild(getSample(doc, String.valueOf(i), upper_bound));
+                node_stats.appendChild(getSample(doc, String.valueOf(i), "UpperBound", upper_bound));
             }
-            
+
             // write the content into xml file
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
@@ -108,14 +102,13 @@ public class WriteXMLFile_bytes1sec {
         }
     }
 
-    private Node getSample(Document doc, String id, String byteCount) {
+    private Node getSample(Document doc, String id, String name, String value) {
         Element sample = doc.createElement("Sample");
         sample.setAttribute("id", id);
 
-        sample.appendChild(getSampleElements(doc, sample, "byteCount", byteCount));
+        sample.appendChild(getSampleElements(doc, sample, name, value));
         return sample;
     }
-    
 
     // utility method to create text node
     private Node getSampleElements(Document doc, Element element, String name, String value) {
