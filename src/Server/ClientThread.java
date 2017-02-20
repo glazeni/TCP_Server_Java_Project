@@ -746,7 +746,7 @@ public class ClientThread extends Thread {
         int i, j = 0, bytesTotal = 0;
         double average = 0;
         ByteSecondVector.clear();
-        System.out.println("Size: " + Vector_Read_or_Write.size());
+        System.out.println("Size:  " + Vector_Read_or_Write.size());
         for (i = 0; i < Vector_Read_or_Write.size(); i++) {
             bytesTotal = 0;
 
