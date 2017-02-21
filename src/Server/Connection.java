@@ -313,9 +313,9 @@ public class Connection extends Thread {
             for (int p = 0; p < 10; p++) {
                 dataIn.readByte();
                 uplink_Client_snd();
-                String cmd = "iperf3 -p 11008 -w 146000 -l 146000 -c 193.136.127.218";
-                //runShell = new RunShellCommandsClient(this.dataMeasurement, cmd, true);
-                //runShell.run();
+                String cmd = "iperf3 -p 11008 -M -n 1 -w 146000 -l 146000 -c 193.136.127.218";
+                runShell = new RunShellCommandsClient(this.dataMeasurement, cmd, true);
+                runShell.run();
             }
             //Downlink
             AvailableBW.clear();
@@ -323,19 +323,32 @@ public class Connection extends Thread {
             for (int p = 0; p < 10; p++) {
                 downlink_Client_rcv();
                 AvailableBW.add(PacketTrain());
-                String cmd = "iperf3 -p 11008 -w 146000 -l 146000 -c 193.136.127.218 -R";
-                //runShell = new RunShellCommandsClient(this.dataMeasurement, cmd, false);
-                //runShell.run();
+                String cmd = "iperf3 -p 11008 -M -n 1 -w 146000 -l 146000 -c 193.136.127.218 -R";
+                runShell = new RunShellCommandsClient(this.dataMeasurement, cmd, false);
+                runShell.run();
             }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
         //Report Measurements - AvailableBW_down Vector
         try {
+            //Report AvailableBW_down 
             dataOut.writeByte(2);
             dataOut.writeInt(AvailableBW.size());
             for (int k = 0; k < AvailableBW.size(); k++) {
                 dataOut.writeInt(AvailableBW.get(k));
+                dataOut.flush();
+            }
+            //Report Shell Vector from terminal Uplink
+            dataOut.writeInt(dataMeasurement.ByteSecondShell_up.size());
+            for (int b = 0; b < dataMeasurement.ByteSecondShell_up.size(); b++) {
+                dataOut.writeInt(dataMeasurement.ByteSecondShell_up.get(b));
+                dataOut.flush();
+            }
+            //Report Shell Vector from terminal Downlink
+            dataOut.writeInt(dataMeasurement.ByteSecondShell_down.size());
+            for (int b = 0; b < dataMeasurement.ByteSecondShell_down.size(); b++) {
+                dataOut.writeInt(dataMeasurement.ByteSecondShell_down.get(b));
                 dataOut.flush();
             }
         } catch (IOException ex) {
