@@ -283,7 +283,7 @@ public class ClientThread extends Thread {
         double deltaN = lastPacket - firstPacket;
         int N = Constants.SOCKET_RCVBUF/1460;
         int L = Constants.BLOCKSIZE;
-        AvaBW = (((N - 1) * L) / deltaN);
+        AvaBW = (((N - 1) * L) / deltaN)*8;
         System.out.println("AvaBW: " + AvaBW);
         return AvaBW.intValue();
     }
