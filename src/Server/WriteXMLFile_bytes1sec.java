@@ -53,7 +53,7 @@ public class WriteXMLFile_bytes1sec {
             //Append Samples
             for (int i = 0; i < Samples.size(); i++) {
                 String bytes = String.valueOf(Samples.get(i));
-                rootElement.appendChild(getSample(doc, String.valueOf(i), "byteCount", bytes));
+                rootElement.appendChild(getSample(doc, "Sample",String.valueOf(i), "byteCount", bytes));
             }
 
             //Append Total Transfered Bytes
@@ -64,18 +64,18 @@ public class WriteXMLFile_bytes1sec {
             //Append Mean Vector
             for (int i = 0; i < MeanVector.size(); i++) {
                 String mean = String.valueOf(MeanVector.get(i));
-                node_stats.appendChild(getSample(doc, String.valueOf(i), "Mean", mean));
+                node_stats.appendChild(getSample(doc,"MeanVector", String.valueOf(i), "Mean", mean));
             }
 
             //Append LowerBoundVector
             for (int i = 0; i < LowerBoundVector.size(); i++) {
                 String lower_bound = String.valueOf(LowerBoundVector.get(i));
-                node_stats.appendChild(getSample(doc, String.valueOf(i), "LowerBound", lower_bound));
+                node_stats.appendChild(getSample(doc,"LowerBoundVector", String.valueOf(i), "LowerBound", lower_bound));
             }
             //Append UpperBoundVector
             for (int i = 0; i < UpperBoundVector.size(); i++) {
                 String upper_bound = String.valueOf(UpperBoundVector.get(i));
-                node_stats.appendChild(getSample(doc, String.valueOf(i), "UpperBound", upper_bound));
+                node_stats.appendChild(getSample(doc, "UpperBoundVector",String.valueOf(i), "UpperBound", upper_bound));
             }
 
             // write the content into xml file
@@ -102,13 +102,14 @@ public class WriteXMLFile_bytes1sec {
         }
     }
 
-    private Node getSample(Document doc, String id, String name, String value) {
-        Element sample = doc.createElement("Sample");
+    private Node getSample(Document doc, String elementName, String id, String name, String value) {
+        Element sample = doc.createElement(elementName);
         sample.setAttribute("id", id);
 
         sample.appendChild(getSampleElements(doc, sample, name, value));
         return sample;
     }
+    
 
     // utility method to create text node
     private Node getSampleElements(Document doc, Element element, String name, String value) {
