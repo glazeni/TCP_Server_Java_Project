@@ -34,7 +34,7 @@ public class WriteXMLFile_AvailBWVectors {
     private String endTime = null;
     //DataMeasurement Measurement = null;
 
-    public WriteXMLFile_AvailBWVectors(String name, Vector<Double> AvailBWVector) {
+    public WriteXMLFile_AvailBWVectors(String name, Vector<Integer> AvailBWVector,int TotalTransferedBytes, Vector<Double> MeanVector, Vector<Double> LowerBoundVector, Vector<Double> UpperBoundVector) {
 
         try {
             //this.Measurement = _Measurement;
@@ -43,14 +43,40 @@ public class WriteXMLFile_AvailBWVectors {
 
             // root elements
             Document doc = docBuilder.newDocument();
-            Element rootElement = doc.createElement("SamplesDeltas");
+            Element rootElement = doc.createElement("Samples_AvailBW");
+            Element node_stats = doc.createElement("Statistics");
             doc.appendChild(rootElement);
+            rootElement.appendChild(node_stats);
             
             //All delta vectors have the same size
             for (int i = 0; i < AvailBWVector.size(); i++) {
                 String AvalBW = String.valueOf(AvailBWVector.get(i));
-                rootElement.appendChild(getSample(doc, String.valueOf(i), AvalBW));
+                rootElement.appendChild(getSample(doc, String.valueOf(i),"AvalBW", AvalBW));
             }
+            
+            //Append Total Transfered Bytes
+            String TotalTransfered = String.valueOf(TotalTransferedBytes);
+            node_stats.appendChild(getSampleElements(doc, node_stats, "TotalBytes", TotalTransfered));
+
+            //Append T Distribution Stats
+            //Append Mean Vector
+            for (int i = 0; i < MeanVector.size(); i++) {
+                String mean = String.valueOf(MeanVector.get(i));
+                node_stats.appendChild(getSample(doc, String.valueOf(i), "Mean", mean));
+            }
+
+            //Append LowerBoundVector
+            for (int i = 0; i < LowerBoundVector.size(); i++) {
+                String lower_bound = String.valueOf(LowerBoundVector.get(i));
+                node_stats.appendChild(getSample(doc, String.valueOf(i), "LowerBound", lower_bound));
+            }
+            //Append UpperBoundVector
+            for (int i = 0; i < UpperBoundVector.size(); i++) {
+                String upper_bound = String.valueOf(UpperBoundVector.get(i));
+                node_stats.appendChild(getSample(doc, String.valueOf(i), "UpperBound", upper_bound));
+            }
+
+            
             // write the content into xml file
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
@@ -75,10 +101,11 @@ public class WriteXMLFile_AvailBWVectors {
         }
     }
 
-    private Node getSample(Document doc, String id, String _AvalBW) {
-        Element sample = doc.createElement("Deltas");
+    private Node getSample(Document doc, String id, String name, String value) {
+        Element sample = doc.createElement("Sample");
         sample.setAttribute("id", id);
-        sample.appendChild(getSampleElements(doc, sample, "AvalBW", _AvalBW));
+
+        sample.appendChild(getSampleElements(doc, sample, name, value));
         return sample;
     }
 

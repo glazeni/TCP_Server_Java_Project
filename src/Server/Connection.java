@@ -3,9 +3,11 @@
  */
 package Server;
 
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.Vector;
 
@@ -24,8 +26,7 @@ public class Connection extends Thread {
     private int byteCnt = 0;
     private boolean isThreadMethod;
     private String METHOD = null;
-    private double AvaBW = 0;
-    private Vector<Double> AvailableBW = null;
+    private Vector<Integer> AvailableBW = null;
     private TCP_Properties TCP_param = null;
     private long runningTime = 35000;
     private int ID = 0;
@@ -45,7 +46,7 @@ public class Connection extends Thread {
             RTout = new RTOutputStream(s.getOutputStream());
             dataIn = new DataInputStream(RTin);
             dataOut = new DataOutputStream(RTout);
-            AvailableBW = new Vector<Double>();
+            AvailableBW = new Vector<Integer>();
         } catch (Exception e) {
             System.out.println("Error in connection:" + e.getMessage());
         }
@@ -239,15 +240,14 @@ public class Connection extends Thread {
         }
     }
 
-    private double PacketTrain() {
-        AvaBW = 0;
+    private int PacketTrain() {
+        Double AvaBW = null;
         double deltaN = lastPacket - firstPacket;
         int N = Constants.SOCKET_RCVBUF / 1460;
         int L = Constants.BLOCKSIZE;
         AvaBW = (((N - 1) * L) / deltaN);
-        System.err.println("AvaBW: " + AvaBW);
-        System.out.println("PTprocess is DONE!");
-        return AvaBW;
+        System.out.println("AvaBW: " + AvaBW);
+        return AvaBW.intValue();
     }
 
     private void Method_PGM() {
@@ -301,9 +301,9 @@ public class Connection extends Thread {
 
     private void Method_PT() {
         //Parameters
-        Constants.SOCKET_RCVBUF = 14600;
-        Constants.SOCKET_SNDBUF = 14600;
-        Constants.BLOCKSIZE = 14600;
+        Constants.SOCKET_RCVBUF = 146000;
+        Constants.SOCKET_SNDBUF = 146000;
+        Constants.BLOCKSIZE = 146000;
         Constants.NUMBER_BLOCKS = 1;
 
         //Measurements
@@ -313,14 +313,20 @@ public class Connection extends Thread {
             for (int p = 0; p < 10; p++) {
                 dataIn.readByte();
                 uplink_Client_snd();
+                String cmd = "iperf3 -p 11008 -w 146000 -l 146000 -c 193.136.127.218";
+                //runShell = new RunShellCommandsClient(this.dataMeasurement, cmd, true);
+                //runShell.run();
             }
-//            //Downlink
-//            AvailableBW.clear();
-//            dataIn.readByte();
-//            for (int p = 0; p < 10; p++) {
-//                downlink_Client_rcv();
-//                AvailableBW.add(PacketTrain());
-//            }
+            //Downlink
+            AvailableBW.clear();
+            dataIn.readByte();
+            for (int p = 0; p < 10; p++) {
+                downlink_Client_rcv();
+                AvailableBW.add(PacketTrain());
+                String cmd = "iperf3 -p 11008 -w 146000 -l 146000 -c 193.136.127.218 -R";
+                //runShell = new RunShellCommandsClient(this.dataMeasurement, cmd, false);
+                //runShell.run();
+            }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -329,14 +335,12 @@ public class Connection extends Thread {
             dataOut.writeByte(2);
             dataOut.writeInt(AvailableBW.size());
             for (int k = 0; k < AvailableBW.size(); k++) {
-                dataOut.writeDouble(AvailableBW.get(k));
+                dataOut.writeInt(AvailableBW.get(k));
                 dataOut.flush();
             }
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
-//            String cmd = "iperf3 -p 11008 -i 1 -N -w 14600 -l 1460 -c 193.136.127.218";
-//            RunShellCommandFromJava(cmd);
             System.err.println("Method_PT along with report is done!");
         }
 
