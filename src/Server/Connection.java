@@ -27,7 +27,7 @@ public class Connection extends Thread {
     private double AvaBW = 0;
     private Vector<Double> AvailableBW = null;
     private TCP_Properties TCP_param = null;
-    private long runningTime = 30000;
+    private long runningTime = 35000;
     private int ID = 0;
     private boolean isIperfSettings;
     private boolean isNagleDisable;

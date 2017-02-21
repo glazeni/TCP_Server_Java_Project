@@ -41,7 +41,7 @@ public class ClientThread extends Thread {
 
     private int ID = 0;
     private int byteCnt = 0;
-    private long runningTime = 30000;
+    private long runningTime = 35000;
     private long firstPacket = 0;
     private long lastPacket = 0;
 

@@ -22,11 +22,9 @@ public class ReminderServer extends Thread {
     public ReminderServer(int seconds, DataMeasurement _dataMeasurement, RTInputStream _RTin) {
         this.RTin = _RTin;
         this.dataMeasurement = _dataMeasurement;
-
         timer = new Timer();
         //timer.schedule(new RemindTask(), 0, seconds);
         timer.scheduleAtFixedRate(new RemindTask(this.RTin), 0, (seconds * 1000));
-
     }
     
     public void cancelTimer(){
