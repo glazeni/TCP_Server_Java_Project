@@ -138,8 +138,8 @@ public class ClientThread extends Thread {
             byte[] rcv_buf = new byte[Constants.BLOCKSIZE];
             int num_blocks = 0, n = 0;
             boolean isFirstPacket = true;
-            System.out.println("\nuplink_Server_rcv with " + "Number Blocks=" + num_blocks);
             num_blocks = dataIn.readInt();
+            System.out.println("\nuplink_Server_rcv with " + "Number Blocks=" + num_blocks);
             for (int i = 0; i < num_blocks; i++) {
                 byteCnt = 0;
                 //Cycle to read each block
@@ -359,7 +359,7 @@ public class ClientThread extends Thread {
             dataOut.writeByte(1);
             for (int p = 0; p < 10; p++) {
                 System.err.println("UPLINK PACKET TRAIN ROUND: " + p);
-                dataOut.writeByte(2);
+                dataOut.writeByte(1);
                 uplink_Server_rcv();
                 AvailableBW_up.add(PacketTrain());
             }
@@ -368,22 +368,17 @@ public class ClientThread extends Thread {
             dataOut.writeByte(2);
             for (int p = 0; p < 10; p++) {
                 System.err.println("DOWNLINK PACKET TRAIN ROUND: " + p);
+                dataOut.writeByte(2);
                 downlink_Server_snd();
             }
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
             tstudent = new Tstudent(AvailableBW_up);
-            tstudent_shellUP = new Tstudent(dataMeasurement.ByteSecondShell_up);
-            tstudent_shellDOWN = new Tstudent(dataMeasurement.ByteSecondShell_down);
             if (isNagleDisable) {
                 writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-AvalBW_uplink_NagleOFF", AvailableBW_up, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector());
-                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_uplink_NagleOFF", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector());
-                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_downlink_NagleOFF", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector());
             } else {
                 writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " AvalBW_uplink_NagleON", AvailableBW_up, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector());
-                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_uplink_NagleON", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector());
-                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_downlink_NagleON", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector());   
             }
         }
         //Receive Report Measurements - AvailableBW_down Vector
@@ -419,8 +414,12 @@ public class ClientThread extends Thread {
             tstudent_shellDOWN = new Tstudent(dataMeasurement.ByteSecondShell_down);
             if (isNagleDisable) {
                 writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " AvalBW_uplink_NagleOFF", AvailableBW_down, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector());
+                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_uplink_NagleOFF", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector());
+                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_downlink_NagleOFF", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector());
             } else {
                 writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " AvalBW_uplink_NagleON", AvailableBW_down, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector());
+                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_uplink_NagleON", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector());
+                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_downlink_NagleON", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector());
             }
             isAlgorithmDone = true;
             System.err.println("Method_PT_Client along with Report is done!");
