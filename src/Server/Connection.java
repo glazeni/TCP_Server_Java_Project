@@ -245,7 +245,7 @@ public class Connection extends Thread {
         double deltaN = lastPacket - firstPacket;
         int N = Constants.SOCKET_RCVBUF / 1460;
         int L = Constants.BLOCKSIZE;
-        AvaBW = (((N - 1) * L) / deltaN)*8;
+        AvaBW = (((N - 1) * L) / deltaN) * 8;
         System.out.println("AvaBW: " + AvaBW);
         return AvaBW.intValue();
     }
@@ -313,9 +313,15 @@ public class Connection extends Thread {
             for (int p = 0; p < 10; p++) {
                 dataIn.readByte();
                 uplink_Client_snd();
-                String cmd = "iperf3 -p 11008 -M -n 1 -w 146000 -l 146000 -c 193.136.127.218";
-                runShell = new RunShellCommandsClient(this.dataMeasurement, cmd, true);
-                runShell.run();
+                if (isNagleDisable) {
+                    String cmd = "iperf3 -p 11008 -M -N -n 1 -w 146000 -l 146000 -c 193.136.127.218";
+                    runShell = new RunShellCommandsClient(this.dataMeasurement, cmd, true);
+                    runShell.run();
+                } else {
+                    String cmd = "iperf3 -p 11008 -M -n 1 -w 146000 -l 146000 -c 193.136.127.218";
+                    runShell = new RunShellCommandsClient(this.dataMeasurement, cmd, true);
+                    runShell.run();
+                }
             }
             //Downlink
             AvailableBW.clear();
@@ -323,9 +329,15 @@ public class Connection extends Thread {
             for (int p = 0; p < 10; p++) {
                 downlink_Client_rcv();
                 AvailableBW.add(PacketTrain());
-                String cmd = "iperf3 -p 11008 -M -n 1 -w 146000 -l 146000 -c 193.136.127.218 -R";
-                runShell = new RunShellCommandsClient(this.dataMeasurement, cmd, false);
-                runShell.run();
+                if (isNagleDisable) {
+                    String cmd = "iperf3 -p 11008 -M -N -n 1 -w 146000 -l 146000 -c 193.136.127.218 -R";
+                    runShell = new RunShellCommandsClient(this.dataMeasurement, cmd, false);
+                    runShell.run();
+                } else {
+                    String cmd = "iperf3 -p 11008 -M -n 1 -w 146000 -l 146000 -c 193.136.127.218 -R";
+                    runShell = new RunShellCommandsClient(this.dataMeasurement, cmd, false);
+                    runShell.run();
+                }
             }
         } catch (IOException ex) {
             ex.printStackTrace();
