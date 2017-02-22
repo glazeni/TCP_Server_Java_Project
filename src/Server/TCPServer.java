@@ -28,8 +28,9 @@ public class TCPServer extends Thread {
     private int ID = 0;
     private int MAX_CLIENTS = 30; // Depending on the Method, a client might need to use 3 sockets, so the MAX_CLIENTS is 10.
     private ClientThread[] m_clientConnections = null;
-    private Process proc= null;
-    public TCPServer() {
+    private Process proc = null;
+
+    public TCPServer(boolean _isIperfSettings, boolean _isNagleDisable) {
         try {
             clientSession = new HashMap<>();
             clientBoolean = new HashMap<>();
@@ -41,8 +42,8 @@ public class TCPServer extends Thread {
             //Algorithms defined for Downlink and Report
             //ALGORITHM_DOWN = "MV_Downlink";
             //ALGORITHM_REPORT = "MV_Report";
-            isIperfSettings = true; //true - Iperf Settings; false - Thesis Settings
-            isNagleDisable = false; //true - Enable Nagle's Algorithm; false - Disable Nagle's Algorithm
+            isIperfSettings = _isIperfSettings; //true - Iperf Settings; false - Thesis Settings
+            isNagleDisable = _isNagleDisable; //true - Enable Nagle's Algorithm; false - Disable Nagle's Algorithm
         } catch (Exception ex) {
             ex.printStackTrace();
         }

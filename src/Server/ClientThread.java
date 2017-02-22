@@ -352,13 +352,14 @@ public class ClientThread extends Thread {
         Constants.SOCKET_SNDBUF = 146000;
         Constants.BLOCKSIZE = 146000;
 
+        System.out.println("MV_Uplink_1secThread with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & PacketSize=" + Constants.BLOCKSIZE);
         //Measurements
         try {
             //Uplink
             AvailableBW_up.clear();
             dataOut.writeByte(1);
             for (int p = 0; p < 10; p++) {
-                System.err.println("UPLINK PACKET TRAIN ROUND: " + p);
+                System.out.println("UPLINK PACKET TRAIN ROUND: " + p);
                 dataOut.writeByte(1);
                 uplink_Server_rcv();
                 AvailableBW_up.add(PacketTrain());
@@ -367,7 +368,7 @@ public class ClientThread extends Thread {
             //Downlink 
             dataOut.writeByte(2);
             for (int p = 0; p < 10; p++) {
-                System.err.println("DOWNLINK PACKET TRAIN ROUND: " + p);
+                System.out.println("DOWNLINK PACKET TRAIN ROUND: " + p);
                 dataIn.readByte();
                 downlink_Server_snd();
             }
