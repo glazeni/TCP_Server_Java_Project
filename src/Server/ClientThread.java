@@ -352,7 +352,7 @@ public class ClientThread extends Thread {
         Constants.SOCKET_SNDBUF = 146000;
         Constants.BLOCKSIZE = 146000;
 
-        System.out.println("MV_Uplink_1secThread with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & PacketSize=" + Constants.BLOCKSIZE);
+        System.out.println("Method_PT=" + Constants.SOCKET_RCVBUF + " & PacketSize=" + Constants.BLOCKSIZE);
         //Measurements
         try {
             //Uplink
