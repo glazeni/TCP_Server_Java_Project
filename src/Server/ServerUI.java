@@ -49,12 +49,14 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
     private ServerUI serverUI = null;
     private boolean isNagleDisable;
     private boolean isIperfSettings;
-    public static TimeSeries series = null;
+    private static TimeSeries series = null;
     //Timer to refresh graph after every second
-    public static javax.swing.Timer timer = null;
+    private static javax.swing.Timer timer = null;
 
-    public ServerUI() {
+    public ServerUI(boolean _isIperfSettings, boolean _isNagleDisable) {
         initComponents();
+        this.isIperfSettings = _isIperfSettings;
+        this.isNagleDisable = _isNagleDisable;
         timer = new javax.swing.Timer(1000, this);
         setInterfaceEnable(false);
         DynamicLineAndTimeSeriesChart("Data Measurement");
@@ -514,8 +516,8 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
                 jTextIPclient.setEnabled(false);
                 jTextPortClient.setEnabled(false);
                 //Create a new TCPServer instance
-                tcpServ = new TCPServer(isIperfSettings, isNagleDisable);
-                tcpServ.start();
+                //tcpServ = new TCPServer(isIperfSettings, isNagleDisable);
+                //tcpServ.start();
                 jTextIPserver.setText(String.valueOf(Constants.SERVER_IP));
                 jTextPortServer.setText(String.valueOf(Constants.SERVERPORT));
                 Log("Server started! \n");
@@ -595,7 +597,7 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         try {
             //CLIENT MODE
             if (jRadioClientButton.isSelected()) {
-                tcpClient = new TCPClient();
+                tcpClient = new TCPClient(isIperfSettings,isNagleDisable);
                 tcpClient.start();
             } else {
                 //SERVER MODE
@@ -658,27 +660,31 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
     }//GEN-LAST:event_jCheckBoxNagleActionPerformed
 
     private void jCheckBoxIperfSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxIperfSettingsActionPerformed
-        isIperfSettings = jCheckBoxIperfSettings.isSelected();
+        //isIperfSettings = jCheckBoxIperfSettings.isSelected();
         if (isIperfSettings) {
+            jCheckBoxIperfSettings.setSelected(true);
             jSpinner3.setValue(64000);
             jSpinner4.setValue(64000);
             jSpinner2.setValue(8000);
             jCheckBoxThesisSettings.setEnabled(false);
         }else{
+            jCheckBoxIperfSettings.setSelected(false);
             jCheckBoxThesisSettings.setEnabled(true);
         }
         
     }//GEN-LAST:event_jCheckBoxIperfSettingsActionPerformed
 
     private void jCheckBoxThesisSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxThesisSettingsActionPerformed
-        isIperfSettings = !jCheckBoxThesisSettings.isSelected();
+        //isIperfSettings = !jCheckBoxThesisSettings.isSelected();
         if (!isIperfSettings) {
+            jCheckBoxThesisSettings.setSelected(true);
             jSpinner3.setValue(14600);
             jSpinner4.setValue(14600);
             jSpinner2.setValue(1460);
             jCheckBoxIperfSettings.setEnabled(false);
         }else{
             jCheckBoxIperfSettings.setEnabled(true);
+            jCheckBoxThesisSettings.setSelected(false);
         }
         
     }//GEN-LAST:event_jCheckBoxThesisSettingsActionPerformed
@@ -713,7 +719,9 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ServerUI().setVisible(true);
+                //new ServerUI().setVisible(true);
+                TCPServer tcpServ= new  TCPServer();
+                tcpServ.start();
             }
         });
     }

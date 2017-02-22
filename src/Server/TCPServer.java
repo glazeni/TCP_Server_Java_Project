@@ -29,9 +29,13 @@ public class TCPServer extends Thread {
     private int MAX_CLIENTS = 30; // Depending on the Method, a client might need to use 3 sockets, so the MAX_CLIENTS is 10.
     private ClientThread[] m_clientConnections = null;
     private Process proc = null;
+    private ServerUI serverUI=null;
 
-    public TCPServer(boolean _isIperfSettings, boolean _isNagleDisable) {
+    public TCPServer() {//boolean _isIperfSettings, boolean _isNagleDisable) {
         try {
+            serverUI = new ServerUI(isIperfSettings, isNagleDisable);
+            serverUI.setVisible(true);
+            
             clientSession = new HashMap<>();
             clientBoolean = new HashMap<>();
             clientMeasurement = new HashMap<>();
@@ -42,8 +46,8 @@ public class TCPServer extends Thread {
             //Algorithms defined for Downlink and Report
             //ALGORITHM_DOWN = "MV_Downlink";
             //ALGORITHM_REPORT = "MV_Report";
-            isIperfSettings = _isIperfSettings; //true - Iperf Settings; false - Thesis Settings
-            isNagleDisable = _isNagleDisable; //true - Enable Nagle's Algorithm; false - Disable Nagle's Algorithm
+            //isIperfSettings = _isIperfSettings; //true - Iperf Settings; false - Thesis Settings
+            //isNagleDisable = _isNagleDisable; //true - Enable Nagle's Algorithm; false - Disable Nagle's Algorithm
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -71,6 +75,17 @@ public class TCPServer extends Thread {
                     }
                 } catch (IOException ex) {
                     ID = new Random().nextInt();
+
+                    //Send ID to the Client
+                    DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
+                    DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
+                    dos.writeInt(ID);
+                    dos.flush();
+                    isIperfSettings = dis.readBoolean();
+                    isNagleDisable = dis.readBoolean();
+                    System.out.println("isIperfSettings:"+isIperfSettings+"  "+"isNagleDisable"+isNagleDisable);
+                    
+                    //Create New Client
                     TCP_param = new TCP_Properties(clientSocket, isNagleDisable);
                     clientSession.put(ID, clientSocket);
                     clientBoolean.put(ID, true);
@@ -82,14 +97,7 @@ public class TCPServer extends Thread {
                             break;
                         }
                     }
-                    //Send ID to the Client
-                    DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
-                    dos.writeInt(ID);
-                    dos.flush();
-                    dos.writeBoolean(isIperfSettings);
-                    dos.flush();
-                    dos.writeBoolean(isNagleDisable);
-                    dos.flush();
+                    serverUI  = new ServerUI(isIperfSettings, isNagleDisable);
                     //proc = Runtime.getRuntime().exec("iperf3 -s -p 20001");
                     continue;
                 }
