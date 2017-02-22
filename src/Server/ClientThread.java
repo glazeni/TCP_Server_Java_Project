@@ -151,7 +151,6 @@ public class ClientThread extends Thread {
                         if (byteCnt >= 1460 && isFirstPacket) {
                             firstPacket = System.currentTimeMillis();
                             isFirstPacket = false;
-                            System.out.println("First Packet: " + firstPacket);
                         }
                     }
 
@@ -159,12 +158,10 @@ public class ClientThread extends Thread {
                         //Keep reading MTU
                     } else {
                         RTin.readTimeVector.add(System.currentTimeMillis());
-                        System.out.println("Reach the end of the block " + i + " with " + n + " bytes read & byteCount=" + byteCnt);
                         break;
                     }
                 } while ((n > -1) && (byteCnt < Constants.BLOCKSIZE));
                 lastPacket = System.currentTimeMillis();
-                System.out.println("Last Packet: " + lastPacket);
                 if (n == -1) {
                     System.out.println("Exited with n=-1");
                     break;
