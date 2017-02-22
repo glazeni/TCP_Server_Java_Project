@@ -31,11 +31,8 @@ public class TCPServer extends Thread {
     private Process proc = null;
     private ServerUI serverUI=null;
 
-    public TCPServer() {//boolean _isIperfSettings, boolean _isNagleDisable) {
-        try {
-            serverUI = new ServerUI(isIperfSettings, isNagleDisable);
-            serverUI.setVisible(true);
-            
+    public TCPServer() {
+        try {            
             clientSession = new HashMap<>();
             clientBoolean = new HashMap<>();
             clientMeasurement = new HashMap<>();
@@ -97,7 +94,6 @@ public class TCPServer extends Thread {
                             break;
                         }
                     }
-                    serverUI  = new ServerUI(isIperfSettings, isNagleDisable);
                     //proc = Runtime.getRuntime().exec("iperf3 -s -p 20001");
                     continue;
                 }
