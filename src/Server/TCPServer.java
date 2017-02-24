@@ -131,8 +131,8 @@ public class TCPServer extends Thread {
         }
     }
     
-//    public static void main(String[] args) {
-//        TCPServer tcpServ = new TCPServer();
-//        tcpServ.start();
-//    }
+    public static void main(String[] args) {
+        TCPServer tcpServ = new TCPServer();
+        tcpServ.start();
+    }
 }
