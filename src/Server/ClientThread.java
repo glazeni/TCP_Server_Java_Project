@@ -40,7 +40,7 @@ public class ClientThread extends Thread {
 
     private int ID = 0;
     private int byteCnt = 0;
-    private long runningTime = 5000;
+    private long runningTime = 35000;
     private long firstPacket = 0;
     private long lastPacket = 0;
 
@@ -363,7 +363,7 @@ public class ClientThread extends Thread {
             }
 
             //Downlink 
-            dataOut.writeByte(2);
+            dataIn.readByte();
             for (int p = 0; p < 10; p++) {
                 System.out.println("DOWNLINK PACKET TRAIN ROUND: " + p);
                 dataIn.readByte();
