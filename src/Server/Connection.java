@@ -298,12 +298,6 @@ public class Connection extends Thread {
     }
 
     private void Method_PT() {
-        //Parameters
-        Constants.SOCKET_RCVBUF = 146000;
-        Constants.SOCKET_SNDBUF = 146000;
-        Constants.BLOCKSIZE = 146000;
-        Constants.NUMBER_BLOCKS = 1;
-
         //Measurements
         try {
             //Uplink
@@ -314,11 +308,11 @@ public class Connection extends Thread {
             }
             //Run Iperf
             if (isNagleDisable) {
-                String cmd = "iperf3 -p 11010 -N -t 10 -w 146000 -l 146000 -c 193.136.127.218";
+                String cmd = "iperf3 -p 11010 -N -t 10 -w " + Constants.SOCKET_RCVBUF + " -l " + Constants.BLOCKSIZE + "-c 193.136.127.218";
                 runShell = new RunShellCommandsClient(this.dataMeasurement, cmd, true);
                 runShell.run();
             } else {
-                String cmd = "iperf3 -p 11010 -t 10 -w 146000 -l 146000 -c 193.136.127.218";
+                String cmd = "iperf3 -p 11010 -t 10 -w " + Constants.SOCKET_RCVBUF + " -l " + Constants.BLOCKSIZE + "-c 193.136.127.218";
                 runShell = new RunShellCommandsClient(this.dataMeasurement, cmd, true);
                 runShell.run();
             }

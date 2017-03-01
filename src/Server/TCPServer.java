@@ -23,16 +23,13 @@ public class TCPServer extends Thread {
     private String ALGORITHM = null;
     private String ALGORITHM_DOWN = null;
     private String ALGORITHM_REPORT = null;
-    private boolean isIperfSettings;
     private boolean isNagleDisable;
     private int ID = 0;
     private int MAX_CLIENTS = 30; // Depending on the Method, a client might need to use 3 sockets, so the MAX_CLIENTS is 10.
     private ClientThread[] m_clientConnections = null;
-    private Process proc = null;
-    private ServerUI serverUI=null;
 
     public TCPServer() {
-        try {            
+        try {
             clientSession = new HashMap<>();
             clientBoolean = new HashMap<>();
             clientMeasurement = new HashMap<>();
@@ -78,13 +75,12 @@ public class TCPServer extends Thread {
                     DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
                     dos.writeInt(ID);
                     dos.flush();
-                    isIperfSettings = dis.readBoolean();
                     isNagleDisable = dis.readBoolean();
                     Constants.BLOCKSIZE = dis.readInt();
                     Constants.SOCKET_RCVBUF = dis.readInt();
                     Constants.SOCKET_SNDBUF = dis.readInt();
-                    System.err.println("isIperfSettings:"+isIperfSettings+"  "+"isNagleDisable:"+isNagleDisable);
-                    System.err.println("BLOCKSIZE:"+Constants.BLOCKSIZE+"\n"+"SO_RCV:"+Constants.SOCKET_RCVBUF + "\n"+ "SO_SND:" +Constants.SOCKET_SNDBUF);
+                    System.err.println("isNagleDisable: " + isNagleDisable);
+                    System.err.println("BLOCKSIZE:" + Constants.BLOCKSIZE + "\n" + "SO_RCV:" + Constants.SOCKET_RCVBUF + "\n" + "SO_SND:" + Constants.SOCKET_SNDBUF);
                     //Create New Client
                     TCP_param = new TCP_Properties(clientSocket, isNagleDisable);
                     clientSession.put(ID, clientSocket);
@@ -92,7 +88,7 @@ public class TCPServer extends Thread {
                     clientMeasurement.put(ID, new DataMeasurement());
                     for (int i = 0; i < MAX_CLIENTS; i++) {
                         if (this.m_clientConnections[i] == null) {
-                            this.m_clientConnections[i] = new ClientThread(ID, ALGORITHM, clientSocket, clientMeasurement.get(ID), isIperfSettings, isNagleDisable);
+                            this.m_clientConnections[i] = new ClientThread(ID, ALGORITHM, clientSocket, clientMeasurement.get(ID), isNagleDisable);
                             this.m_clientConnections[i].start();
                             break;
                         }
@@ -104,13 +100,13 @@ public class TCPServer extends Thread {
                 if (clientSession.containsKey(ID) && clientBoolean.containsKey(ID) && !clientBoolean.get(ID)) {
                     //Report
                     TCP_param = new TCP_Properties(clientSocket, isNagleDisable);
-                    Thread c = new ClientThread(this.ID, ALGORITHM_REPORT, clientSocket, clientMeasurement.get(ID), isIperfSettings, isNagleDisable);
+                    Thread c = new ClientThread(this.ID, ALGORITHM_REPORT, clientSocket, clientMeasurement.get(ID), isNagleDisable);
                     c.start();
                 } else if (clientSession.containsKey(ID) && clientBoolean.containsKey(ID) && clientBoolean.get(ID)) {
                     //Downlink
                     clientBoolean.put(ID, false);
                     TCP_param = new TCP_Properties(clientSocket, isNagleDisable);
-                    Thread c = new ClientThread(this.ID, ALGORITHM_DOWN, clientSocket, clientMeasurement.get(ID), isIperfSettings, isNagleDisable);
+                    Thread c = new ClientThread(this.ID, ALGORITHM_DOWN, clientSocket, clientMeasurement.get(ID), isNagleDisable);
                     c.start();
 
                 }
@@ -130,7 +126,7 @@ public class TCPServer extends Thread {
             }
         }
     }
-    
+
     public static void main(String[] args) {
         TCPServer tcpServ = new TCPServer();
         tcpServ.start();
