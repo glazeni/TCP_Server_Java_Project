@@ -23,23 +23,19 @@ public class RTInputStream extends FilterInputStream {
 
     @Override
     public int read() throws IOException {
-        long start = 0;
         int cnt = super.read();
         return cnt;
     }
 
     @Override
     public int read(byte data[]) throws IOException {
-        long start = 0;
         int cnt = super.read(data);
         return cnt;
     }
 
     @Override
     public int read(byte data[], int off, int len) throws IOException {
-        long start = System.currentTimeMillis();
         int count = super.read(data, off, len);
-
         bytesTotal += count; //Sum of all read bytes
         bytesGraph += count * 8; //Sum of all read bits to be shown in bandwidth graph
         return count;
