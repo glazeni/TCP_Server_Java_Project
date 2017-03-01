@@ -229,7 +229,7 @@ public class ClientThread extends Thread {
     private int PacketTrain() {
         Double AvaBW = null;
         double deltaN = lastPacket - firstPacket;
-        int N = Constants.SOCKET_RCVBUF / 1460;
+        int N = Constants.BLOCKSIZE / 1460;
         int L = Constants.BLOCKSIZE;
         AvaBW = (((N - 1) * L) / deltaN) * 8;
         System.out.println("AvaBW: " + AvaBW + "\n");

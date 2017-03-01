@@ -11,7 +11,7 @@ package Server;
 
 public class Constants {
 
-    public static int NUMBER_BLOCKS = 100;
+    public static int NUMBER_BLOCKS = 1;
     public static int BLOCKSIZE = 8000; //Mobiperf uses 1358 1460 without TCPHeader
     public static int SO_TIMEOUT = 30000; //10sec - Receiving Timeout
     public static int SOCKET_SNDBUF = 64000; //14,6 Kb

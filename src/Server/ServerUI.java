@@ -1,24 +1,36 @@
+package Server;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Server;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
@@ -32,13 +44,11 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
 
     private InetAddress addr = null;
     private TCPClient tcpClient = null;
-    private TCPServer tcpServ = null;
-    private ServerUI serverUI = null;
-    private boolean isNagleDisable;
-    private boolean isIperfSettings;
     private static TimeSeries series = null;
     //Timer to refresh graph after every second
     private static javax.swing.Timer timer = null;
+    private boolean isNagleDisable;
+    private boolean isIperfSettings;
 
     public ServerUI() {
         initComponents();
@@ -71,18 +81,19 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         jBeginMeasurement = new javax.swing.JButton();
         jGraphPanel = new javax.swing.JPanel();
         jTCPpanel = new javax.swing.JPanel();
-        jSpinner2 = new javax.swing.JSpinner();
         jSpinner3 = new javax.swing.JSpinner();
+        jSpinner4 = new javax.swing.JSpinner();
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
-        jSpinner4 = new javax.swing.JSpinner();
+        jSpinner5 = new javax.swing.JSpinner();
         jLabel9 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
-        jSpinner5 = new javax.swing.JSpinner();
+        jSpinner6 = new javax.swing.JSpinner();
         jLabel6 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextLogger = new javax.swing.JTextArea();
         jLabel11 = new javax.swing.JLabel();
+        jCheckBoxNagle = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
@@ -162,16 +173,16 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         jTCPpanel.setBackground(new java.awt.Color(230, 230, 230));
         jTCPpanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        jLabel7.setText("Socket Receive Buffer");
+        jLabel7.setText("TCP Receive Window");
 
-        jLabel8.setText("Socket Send Buffer");
+        jLabel8.setText("TCP Send Window");
 
         jLabel9.setFont(new java.awt.Font("Lucida Grande", 1, 18)); // NOI18N
         jLabel9.setText("TCP Properties");
 
         jLabel10.setText("Socket Timeout");
 
-        jLabel6.setText("Packet Size");
+        jLabel6.setText("Buffers Size");
 
         javax.swing.GroupLayout jTCPpanelLayout = new javax.swing.GroupLayout(jTCPpanel);
         jTCPpanel.setLayout(jTCPpanelLayout);
@@ -181,48 +192,48 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
                 .addContainerGap()
                 .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jTCPpanelLayout.createSequentialGroup()
-                        .addComponent(jLabel9)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jTCPpanelLayout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
                         .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jTCPpanelLayout.createSequentialGroup()
-                                .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel6)
-                                    .addComponent(jLabel7)
-                                    .addComponent(jLabel8))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
                             .addGroup(jTCPpanelLayout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
                                 .addComponent(jLabel10)
-                                .addGap(42, 42, 42)))
+                                .addGap(42, 42, 42))
+                            .addGroup(jTCPpanelLayout.createSequentialGroup()
+                                .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel7)
+                                    .addComponent(jLabel6)
+                                    .addComponent(jLabel8))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                         .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jSpinner5, javax.swing.GroupLayout.DEFAULT_SIZE, 82, Short.MAX_VALUE)
+                            .addComponent(jSpinner6, javax.swing.GroupLayout.DEFAULT_SIZE, 82, Short.MAX_VALUE)
+                            .addComponent(jSpinner5)
                             .addComponent(jSpinner4)
-                            .addComponent(jSpinner3)
-                            .addComponent(jSpinner2))))
+                            .addComponent(jSpinner3)))
+                    .addGroup(jTCPpanelLayout.createSequentialGroup()
+                        .addComponent(jLabel9)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jTCPpanelLayout.setVerticalGroup(
             jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jTCPpanelLayout.createSequentialGroup()
-                .addGap(13, 13, 13)
-                .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(24, 24, 24)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel9)
+                .addGap(18, 18, 18)
                 .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
-                    .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel7)
                     .addComponent(jSpinner3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel8)
+                    .addComponent(jLabel7)
                     .addComponent(jSpinner4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel10)
+                    .addComponent(jLabel8)
                     .addComponent(jSpinner5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jTCPpanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel10)
+                    .addComponent(jSpinner6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -233,52 +244,62 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         jLabel11.setFont(new java.awt.Font("Lucida Grande", 1, 18)); // NOI18N
         jLabel11.setText("Logger");
 
+        jCheckBoxNagle.setText("Disable Nagle Algorithm");
+        jCheckBoxNagle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxNagleActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jRadioClientButton)
+                                    .addComponent(jRadioServerButton))
+                                .addGap(25, 25, 25)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel1)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jTextIPclient, javax.swing.GroupLayout.PREFERRED_SIZE, 247, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel2)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jTextIPserver, javax.swing.GroupLayout.PREFERRED_SIZE, 247, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(jLabel3)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jTextPortClient, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(12, 12, 12)
+                                        .addComponent(jLabel4)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jTextPortServer, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGap(18, 18, 18)
+                                .addComponent(jBeginMeasurement, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jActiveButton))
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 734, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(12, 12, 12)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jRadioClientButton)
-                            .addComponent(jRadioServerButton))
-                        .addGap(25, 25, 25)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel11)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel1)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextIPclient, javax.swing.GroupLayout.PREFERRED_SIZE, 247, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextIPserver, javax.swing.GroupLayout.PREFERRED_SIZE, 247, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jLabel3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextPortClient, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(12, 12, 12)
-                                .addComponent(jLabel4)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextPortServer, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(18, 18, 18)
-                        .addComponent(jBeginMeasurement, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jActiveButton))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addGroup(layout.createSequentialGroup()
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jTCPpanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGroup(layout.createSequentialGroup()
-                                    .addGap(8, 8, 8)
-                                    .addComponent(jLabel11)))
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jGraphPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                .addGap(4, 4, 4)
+                                .addComponent(jCheckBoxNagle))
+                            .addComponent(jTCPpanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jGraphPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(14, 14, 14))
         );
         layout.setVerticalGroup(
@@ -305,18 +326,21 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
                                 .addComponent(jRadioServerButton)
                                 .addComponent(jTextIPserver, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addComponent(jLabel2)))))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jGraphPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jGraphPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(36, 36, 36)
+                        .addGap(18, 18, 18)
+                        .addComponent(jCheckBoxNagle)
+                        .addGap(28, 28, 28)
                         .addComponent(jTCPpanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel11)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel11)
+                        .addGap(4, 4, 4)))
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(28, Short.MAX_VALUE))
+                .addContainerGap(16, Short.MAX_VALUE))
         );
 
         getAccessibleContext().setAccessibleDescription("");
@@ -335,7 +359,7 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
             System.err.println("Error in Log: " + e + "\n");
         }
     }
-    
+
     //Enable and disable Interface components
     private void setInterfaceEnable(boolean enabled) {
         if (enabled) {
@@ -347,12 +371,14 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
             jTextPortClient.setEnabled(true);
             jTextPortServer.setEnabled(true);
             jTextLogger.setEnabled(true);
-            jSpinner2.setEnabled(true);
             jSpinner3.setEnabled(true);
             jSpinner4.setEnabled(true);
             jSpinner5.setEnabled(true);
+            jSpinner6.setEnabled(true);
+            jSpinner6.setEnabled(true);
             jTCPpanel.setEnabled(true);
             jGraphPanel.setEnabled(true);
+            jCheckBoxNagle.setEnabled(true);
         } else {
             jBeginMeasurement.setEnabled(false);
             jRadioClientButton.setEnabled(false);
@@ -362,12 +388,14 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
             jTextPortClient.setEnabled(false);
             jTextPortServer.setEnabled(false);
             jTextLogger.setEnabled(false);
-            jSpinner2.setEnabled(false);
             jSpinner3.setEnabled(false);
             jSpinner4.setEnabled(false);
             jSpinner5.setEnabled(false);
+            jSpinner6.setEnabled(false);
+            jSpinner6.setEnabled(false);
             jTCPpanel.setEnabled(false);
             jGraphPanel.setEnabled(false);
+            jCheckBoxNagle.setEnabled(false);
         }
         jGraphPanel.updateUI();
     }
@@ -396,8 +424,8 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
     private JFreeChart createChart(final XYDataset dataset) {
         final JFreeChart result = ChartFactory.createTimeSeriesChart(
                 "Bandwidth Estimator",
-                "Time [s]",
-                "Bandwidth [Bits]",
+                "Time/s",
+                "Bandwidth",
                 dataset,
                 true,
                 true,
@@ -426,11 +454,12 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         try {
             //Create a Second object to solve duplicate time series
             series.addOrUpdate(new Second(new Date(), TimeZone.getDefault()), RTInputStream.bytesGraph);
-            //Verify whether the ClientThread is finished to create a new TCPServer instance
+
+            //System.err.println("RTin.byteCnt="+RTInputStream.byteCnt);
         } catch (Exception ex) {
             ex.printStackTrace();
-        } finally {
-            RTInputStream.bytesGraph = 0;
+        }finally{
+            RTInputStream.bytesGraph=0;
         }
     }
 
@@ -442,50 +471,49 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         try {
             if (jActiveButton.isSelected()) {
                 setInterfaceEnable(true);
-                jRadioServerButton.setSelected(true);
-                jTextIPclient.setEnabled(false);
-                jTextPortClient.setEnabled(false);
-                //Create TCPServer Instance
-                tcpServ = new TCPServer();
-                tcpServ.start();
-                jTextIPserver.setText(String.valueOf(Constants.SERVER_IP));
-                jTextPortServer.setText(String.valueOf(Constants.SERVERPORT));
+                jRadioClientButton.setSelected(true);
+                jRadioServerButton.setEnabled(false);
+                jTextIPserver.setEnabled(false);
+                jTextPortServer.setEnabled(false);
+                addr = InetAddress.getLocalHost();
+                jTextIPclient.setText(addr.getHostAddress());
+                jTextPortClient.setText(String.valueOf(Constants.SERVERPORT));;
                 Log("Server started! \n");
 
                 //Spinners Listeners
-                //MTU Size
-                jSpinner2.setValue((Integer) Constants.BLOCKSIZE);
-                jSpinner2.addChangeListener(new ChangeListener() {
-                    @Override
-                    public void stateChanged(ChangeEvent e) {
-                        Constants.BLOCKSIZE = (Integer) jSpinner2.getValue();
-                    }
-                });
-                //Socket rcv Buffer
-                jSpinner3.setValue((Integer) Constants.SOCKET_RCVBUF);
+               
+                //Packet Size
+                jSpinner3.setValue((Integer) Constants.BLOCKSIZE);
                 jSpinner3.addChangeListener(new ChangeListener() {
                     @Override
                     public void stateChanged(ChangeEvent e) {
-                        Constants.SOCKET_RCVBUF = (Integer) jSpinner3.getValue();
+                        Constants.BLOCKSIZE = (Integer) jSpinner3.getValue();
                     }
                 });
-                //Socket snd Buffer
-                jSpinner4.setValue((Integer) Constants.SOCKET_SNDBUF);
+                //Socket rcv Buffer
+                jSpinner4.setValue((Integer) Constants.SOCKET_RCVBUF);
                 jSpinner4.addChangeListener(new ChangeListener() {
                     @Override
                     public void stateChanged(ChangeEvent e) {
-                        Constants.SOCKET_SNDBUF = (Integer) jSpinner4.getValue();
+                        Constants.SOCKET_RCVBUF = (Integer) jSpinner4.getValue();
                     }
                 });
-                //Socket Timeout
-                jSpinner5.setValue((Integer) Constants.SO_TIMEOUT);
+                //Socket snd Buffer
+                jSpinner5.setValue((Integer) Constants.SOCKET_SNDBUF);
                 jSpinner5.addChangeListener(new ChangeListener() {
                     @Override
                     public void stateChanged(ChangeEvent e) {
-                        Constants.SO_TIMEOUT = (Integer) jSpinner5.getValue();
+                        Constants.SOCKET_SNDBUF = (Integer) jSpinner5.getValue();
                     }
                 });
-
+                //Socket Timeout
+                jSpinner6.setValue((Integer) Constants.SO_TIMEOUT);
+                jSpinner6.addChangeListener(new ChangeListener() {
+                    @Override
+                    public void stateChanged(ChangeEvent e) {
+                        Constants.SO_TIMEOUT = (Integer) jSpinner6.getValue();
+                    }
+                });
             } else {
                 setInterfaceEnable(false);
                 jRadioClientButton.setSelected(false);
@@ -494,8 +522,6 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
             }
         } catch (Exception ex) {
             ex.printStackTrace();
-        } finally {
-            timer.start();
         }
     }//GEN-LAST:event_jActiveButtonActionPerformed
 
@@ -519,7 +545,7 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         try {
             //CLIENT MODE
             if (jRadioClientButton.isSelected()) {
-                tcpClient = new TCPClient(isIperfSettings,isNagleDisable);
+                tcpClient = new TCPClient(isNagleDisable);
                 tcpClient.start();
             } else {
                 //SERVER MODE
@@ -528,12 +554,6 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
-//            //Connection List
-//            if (connlist != null) {
-//                for (Iterator<ClientThread> it = connlist.values().iterator(); it.hasNext();) {
-//                    Log("Connection " + connNumber++ + ":" + it.next().getName() + "\n");
-//                }
-//            }
             jTextPortServer.setText(String.valueOf(Constants.SERVERPORT));
             jTextPortClient.setText(String.valueOf(Constants.SERVERPORT));
         }
@@ -571,44 +591,54 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         }
     }//GEN-LAST:event_jRadioServerButtonActionPerformed
 
+    private void jCheckBoxNagleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxNagleActionPerformed
+        isNagleDisable = jCheckBoxNagle.isSelected();
+        if (isNagleDisable) {
+            Log("Nagle OFF");
+        } else {
+            Log("Nagle ON");
+        }
+    }//GEN-LAST:event_jCheckBoxNagleActionPerformed
+
     /**
      * @param args the command line arguments
      */
-//    public static void main(String args[]) {
-//        /* Set the Nimbus look and feel */
-//        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-//        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-//         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
-//         */
-//        try {
-//            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-//                if ("Nimbus".equals(info.getName())) {
-//                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-//
-//                    break;
-//                }
-//            }
-//        } catch (ClassNotFoundException ex) {
-//            java.util.logging.Logger.getLogger(ServerUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        } catch (InstantiationException ex) {
-//            java.util.logging.Logger.getLogger(ServerUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        } catch (IllegalAccessException ex) {
-//            java.util.logging.Logger.getLogger(ServerUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-//            java.util.logging.Logger.getLogger(ServerUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        }
-//        //</editor-fold>
-//        /* Create and display the form */
-//        java.awt.EventQueue.invokeLater(new Runnable() {
-//            public void run() {
-//                new ServerUI().setVisible(true);
-//            }
-//        });
-//    }
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(ServerUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(ServerUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(ServerUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(ServerUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new ServerUI().setVisible(true);
+            }
+        });
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JToggleButton jActiveButton;
     private javax.swing.JButton jBeginMeasurement;
+    private javax.swing.JCheckBox jCheckBoxNagle;
     private javax.swing.JPanel jGraphPanel;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
@@ -623,10 +653,10 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
     private javax.swing.JRadioButton jRadioClientButton;
     private javax.swing.JRadioButton jRadioServerButton;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JSpinner jSpinner2;
     private javax.swing.JSpinner jSpinner3;
     private javax.swing.JSpinner jSpinner4;
     private javax.swing.JSpinner jSpinner5;
+    private javax.swing.JSpinner jSpinner6;
     private javax.swing.JPanel jTCPpanel;
     private javax.swing.JTextField jTextIPclient;
     private javax.swing.JTextField jTextIPserver;
