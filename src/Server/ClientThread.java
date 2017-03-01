@@ -425,18 +425,6 @@ public class ClientThread extends Thread {
     }
 
     private void Method_MV_Uplink_Server() {
-
-        //Parameters
-        if (isIperfSettings) {
-            Constants.SOCKET_RCVBUF = 29200;
-            Constants.SOCKET_SNDBUF = 29200;
-            Constants.BLOCKSIZE = 128000;
-        } else {
-            Constants.SOCKET_RCVBUF = 14600;
-            Constants.SOCKET_SNDBUF = 14600;
-            Constants.BLOCKSIZE = 8000;
-        }
-
         System.out.println("MV_Uplink_1secThread with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & PacketSize=" + Constants.BLOCKSIZE);
         //Measurements
         dataMeasurement.SampleSecond_up.clear();
@@ -468,16 +456,6 @@ public class ClientThread extends Thread {
     }
 
     private void Method_MV_Downlink_Server() {
-        //Parameters
-        if (isIperfSettings) {
-            Constants.SOCKET_RCVBUF = 29200;
-            Constants.SOCKET_SNDBUF = 29200;
-            Constants.BLOCKSIZE = 128000;
-        } else {
-            Constants.SOCKET_RCVBUF = 14600;
-            Constants.SOCKET_SNDBUF = 14600;
-            Constants.BLOCKSIZE = 8000;
-        }
         System.out.println("MV_Downlink_1secThread with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & PacketSize=" + Constants.BLOCKSIZE);
         //Measurements
         try {
@@ -544,16 +522,6 @@ public class ClientThread extends Thread {
     }
 
     private void Method_MV_UP_readVector_Server() {
-        //Parameters
-        if (isIperfSettings) {
-            Constants.SOCKET_RCVBUF = 29200;
-            Constants.SOCKET_SNDBUF = 29200;
-            Constants.BLOCKSIZE = 128000;
-        } else {
-            Constants.SOCKET_RCVBUF = 14600;
-            Constants.SOCKET_SNDBUF = 14600;
-            Constants.BLOCKSIZE = 8000;
-        }
         System.out.println("MV_Uplink_readVector with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & PacketSize=" + Constants.BLOCKSIZE);
 
         //Measurements
@@ -587,17 +555,6 @@ public class ClientThread extends Thread {
     }
 
     private void Method_MV_DOWN_readVector_Server() {
-        //Parameters
-        if (isIperfSettings) {
-            Constants.SOCKET_RCVBUF = 29200;
-            Constants.SOCKET_SNDBUF = 29200;
-            Constants.BLOCKSIZE = 128000;
-        } else {
-            Constants.SOCKET_RCVBUF = 14600;
-            Constants.SOCKET_SNDBUF = 14600;
-            Constants.BLOCKSIZE = 8000;
-        }
-
         System.out.println("MV_Downlink_readVector with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & PacketSize=" + Constants.BLOCKSIZE);
         //Measurements
         try {
