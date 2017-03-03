@@ -57,8 +57,8 @@ public class ClientThread extends Thread {
             RTout = new RTOutputStream(clientSocket.getOutputStream());
             dataIn = new DataInputStream(RTin);
             dataOut = new DataOutputStream(RTout);
-            outCtrl = new PrintWriter(RTout, true);
-            inCtrl = new BufferedReader(new InputStreamReader(RTin));
+            outCtrl = new PrintWriter(clientSocket.getOutputStream(), true);
+            inCtrl = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
             AvailableBW_up = new Vector<Integer>();
             AvailableBW_down = new Vector<Integer>();
@@ -142,6 +142,7 @@ public class ClientThread extends Thread {
             System.out.println("uplink_Server_rcv STARTED!");
             //Receive Packet Train
             num_packets = dataIn.readInt();
+            System.out.println("NUM_PACKETS:" + num_packets);
             while ((inputLine = inCtrl.readLine()) != null) {
                 if (startTime == 0) {
                     startTime = System.currentTimeMillis();
@@ -153,20 +154,20 @@ public class ClientThread extends Thread {
                 System.out.println("Received the " + (counter + 1) + " message with size: " + inputLine.length());
                 // increase the counter which is equal to the number of packets
                 counter++;
-                if (counter == num_packets) {
+//                if (counter == num_packets-1) {
+//                    break;
+//                }
+                if (inputLine.substring(0, Constants.FINAL_MSG.length()).equals(Constants.FINAL_MSG)) {
+                    gapTimeClt = Double.parseDouble(inputLine.substring(Constants.FINAL_MSG.length()+1));
+                    System.out.println("Detect last uplink link message with GAP="+gapTimeClt);
                     break;
                 }
             }
             endTime = System.currentTimeMillis();
+            
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
-            try {
-                //Receive Gap Time From Client
-                gapTimeClt = dataIn.readDouble();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
             gapTimeSrv = endTime - startTime;
             // Bandwidth calculation
             // 1 Mbit/s = 125 Byte/ms 
@@ -271,8 +272,8 @@ public class ClientThread extends Thread {
 
                 // create train gap in nanoseconds
                 try {
-                    if (Constants.pktGapNS > 0) {
-                        Thread.sleep(Constants.pktGapNS);
+                    if (Constants.PACKET_GAP > 0) {
+                        Thread.sleep(Constants.PACKET_GAP);
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -336,24 +337,24 @@ public class ClientThread extends Thread {
         tstudent_shellDOWN = null;
 
         try {
-            //Receive AvailableBW_down Vector
-            dataIn.readByte();
-            int length = dataIn.readInt();
-            for (int k = 0; k < length; k++) {
-                AvailableBW_down.add(dataIn.readInt());
-            }
-            //Receive ByteSecondShell Up
-            int length_shellUP = dataIn.readInt();
-            for (int k = 0; k < length_shellUP; k++) {
-                dataMeasurement.ByteSecondShell_up.add(dataIn.readInt());
-            }
-            //Receive ByteSecondShell Up
-            int length_shellDOWN = dataIn.readInt();
-            for (int k = 0; k < length_shellDOWN; k++) {
-                dataMeasurement.ByteSecondShell_down.add(dataIn.readInt());
-            }
+//            //Receive AvailableBW_down Vector
+//            dataIn.readByte();
+//            int length = dataIn.readInt();
+//            for (int k = 0; sk < length; k++) {
+//                AvailableBW_down.add(dataIn.readInt());
+//            }
+//            //Receive ByteSecondShell Up
+//            int length_shellUP = dataIn.readInt();
+//            for (int k = 0; k < length_shellUP; k++) {
+//                dataMeasurement.ByteSecondShell_up.add(dataIn.readInt());
+//            }
+//            //Receive ByteSecondShell Up
+//            int length_shellDOWN = dataIn.readInt();
+//            for (int k = 0; k < length_shellDOWN; k++) {
+//                dataMeasurement.ByteSecondShell_down.add(dataIn.readInt());
+//            }
 
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
 //            tstudent = new Tstudent(AvailableBW_down);

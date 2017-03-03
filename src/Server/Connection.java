@@ -134,8 +134,8 @@ public class Connection extends Thread {
 
                 // create train gap in nanoseconds
                 try {
-                    if (Constants.pktGapNS > 0) {
-                        Thread.sleep(Constants.pktGapNS);
+                    if (Constants.PACKET_GAP > 0) {
+                        Thread.sleep(Constants.PACKET_GAP);
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
