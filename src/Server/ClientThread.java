@@ -45,9 +45,6 @@ public class ClientThread extends Thread {
     private int ID = 0;
     private int byteCnt = 0;
     private long runningTime = 35000;
-    private long firstPacket = 0;
-    private long lastPacket = 0;
-    private int numberPackets = 0;
 
     public ClientThread(int _ID, String _METHOD, Socket _clientSocket, DataMeasurement _dataMeasurement, boolean _isNagleDisable) {
         try {
@@ -129,7 +126,7 @@ public class ClientThread extends Thread {
     }
 
     private void uplink_Server_rcv() {
-        int num_blocks = 0;
+        int num_packets = 0;
         String inputLine = "";
         int counter = 0;
         int singlePktSize = 0;
@@ -143,6 +140,8 @@ public class ClientThread extends Thread {
         double availableBWFraction = 1.0;
         try {
             System.out.println("uplink_Server_rcv STARTED!");
+            //Receive Packet Train
+            num_packets = dataIn.readInt();
             while ((inputLine = inCtrl.readLine()) != null) {
                 if (startTime == 0) {
                     startTime = System.currentTimeMillis();
@@ -152,15 +151,18 @@ public class ClientThread extends Thread {
                 byteCounter += inputLine.length();
 
                 System.out.println("Received the " + (counter + 1) + " message with size: " + inputLine.length());
-                // increase the counter
+                // increase the counter which is equal to the number of packets
                 counter++;
-
+                if (counter == num_packets) {
+                    break;
+                }
             }
             endTime = System.currentTimeMillis();
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
             try {
+                //Receive Gap Time From Client
                 gapTimeClt = dataIn.readDouble();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -180,12 +182,13 @@ public class ClientThread extends Thread {
             System.out.println("Estimated Total upload bandwidth is " + estTotalUpBandWidth + " Mbits/sec.");
             System.out.println("Availabe fraction is " + availableBWFraction);
             System.out.println("Estimated Available upload bandwidth is " + estAvailiableUpBandWidth + " Mbits/sec.");
+            System.err.println("uplink_Server_rcv DONE");
         }
     }
 
     private boolean uplink_Server_rcvInSeconds(long _end) {
         try {
-            byte[] rcv_buf = new byte[Constants.BLOCKSIZE];
+            byte[] rcv_buf = new byte[Constants.BUFFERSIZE];
             int n = 0;
             System.out.println("\nuplink_Server_rcvInSeconds");
             //Initialize Timer
@@ -196,7 +199,7 @@ public class ClientThread extends Thread {
                 byteCnt = 0;
                 //Cycle to read each block
                 do {
-                    n = RTin.read(rcv_buf, byteCnt, Constants.BLOCKSIZE - byteCnt);
+                    n = RTin.read(rcv_buf, byteCnt, Constants.BUFFERSIZE - byteCnt);
                     //n= RTin.read(rcv_buf);
                     if (n > 0) {
                         byteCnt += n;
@@ -209,7 +212,7 @@ public class ClientThread extends Thread {
                         break;
                     }
 
-                } while ((n > 0) && (byteCnt < Constants.BLOCKSIZE));
+                } while ((n > 0) && (byteCnt < Constants.BUFFERSIZE));
                 if (n == -1) {
                     System.out.println("Exited with n=-1");
                     break;
@@ -229,7 +232,7 @@ public class ClientThread extends Thread {
     private boolean downlink_Server_sndInSeconds() {
         boolean keepRunning = true;
         try {
-            byte[] snd_buf = new byte[Constants.BLOCKSIZE];
+            byte[] snd_buf = new byte[Constants.BUFFERSIZE];
             new Random().nextBytes(snd_buf);
             while (keepRunning) {
                 RTout.write(snd_buf);
@@ -243,33 +246,64 @@ public class ClientThread extends Thread {
     }
 
     private void downlink_Server_snd() {
+        int counter = 0;
+        long beforeTime = 0;
+        long afterTime = 0;
+        double diffTime = 0;
         try {
-            int num_blocks = Constants.NUMBER_BLOCKS;
-            byte[] snd_buf = new byte[Constants.BLOCKSIZE];
-            new Random().nextBytes(snd_buf);
-            dataOut.writeInt(num_blocks);
-            dataOut.flush();
-            System.out.println("downlink_Server_snd with " + "Number Blocks=" + num_blocks);
-            for (int i = 0; i < num_blocks; i++) {
-                RTout.write(snd_buf);
+            System.out.println("downlink_Server_snd STARTED!");
+            byte[] payload = new byte[Constants.PACKETSIZE];
+            Random rand = new Random();
+            // Randomize the payload with chars between 'a' to 'z' and 'A' to 'Z'  to assure there is no "\r\n"
+            for (int i = 0; i < payload.length; i++) {
+                payload[i] = (byte) ('A' + rand.nextInt(52));
             }
-        } catch (IOException ex) {
+            //Send Packet Train
+            dataOut.writeInt(Constants.NUMBER_PACKETS);
+            while (counter < Constants.NUMBER_PACKETS) {
+                // start recording the first packet send time
+                if (beforeTime == 0) {
+                    beforeTime = System.currentTimeMillis();
+                }
+                // send packet with constant gap
+                outCtrl.println(new String(payload));
+                outCtrl.flush();
+
+                // create train gap in nanoseconds
+                try {
+                    if (Constants.pktGapNS > 0) {
+                        Thread.sleep(Constants.pktGapNS);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                counter++;
+            }
+            afterTime = System.currentTimeMillis();
+        } catch (Exception ex) {
             ex.printStackTrace();
+        } finally {
+            diffTime = afterTime - beforeTime;
+            try {
+                dataOut.writeDouble(diffTime);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.err.println("downlink_Server_snd DONE");
         }
     }
 
-    private int PacketTrain() {
-        Double AvaBW = null;
-        double deltaN = lastPacket - firstPacket;
-        int N = numberPackets;
-        int L = 512;
-        AvaBW = (((N - 1) * L) / deltaN) * 8;
-        System.out.println("AvaBW: " + AvaBW + "\n");
-        return AvaBW.intValue();
-    }
-
+//    private int PacketTrain() {
+//        Double AvaBW = null;
+//        double deltaN = lastPacket - firstPacket;
+//        int N = numberPackets;
+//        int L = 512;
+//        AvaBW = (((N - 1) * L) / deltaN) * 8;
+//        System.out.println("AvaBW: " + AvaBW + "\n");
+//        return AvaBW.intValue();
+//    }
     private void Method_PT() {
-        System.out.println("Method_PT=" + Constants.SOCKET_RCVBUF + " & BufferSize=" + Constants.BLOCKSIZE);
+        System.out.println("Method_PT=" + Constants.SOCKET_RCVBUF + " & BufferSize=" + Constants.BUFFERSIZE);
         //Measurements
         try {
             //Uplink
@@ -279,11 +313,8 @@ public class ClientThread extends Thread {
 
             //Downlink 
             dataIn.readByte();
-            for (int p = 0; p < 10; p++) {
-                System.out.println("DOWNLINK PACKET TRAIN ROUND: " + p);
-                dataIn.readByte();
-                downlink_Server_snd();
-            }
+            downlink_Server_snd();
+
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
@@ -296,11 +327,14 @@ public class ClientThread extends Thread {
         }
         //Receive Report Measurements - AvailableBW_down Vector
         AvailableBW_down.clear();
+
         dataMeasurement.ByteSecondShell_up.clear();
+
         dataMeasurement.ByteSecondShell_down.clear();
         tstudent = null;
         tstudent_shellUP = null;
         tstudent_shellDOWN = null;
+
         try {
             //Receive AvailableBW_down Vector
             dataIn.readByte();
@@ -340,7 +374,7 @@ public class ClientThread extends Thread {
     }
 
     private void Method_MV_Uplink_Server() {
-        System.out.println("MV_Uplink_1secThread with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & BufferSize=" + Constants.BLOCKSIZE);
+        System.out.println("MV_Uplink_1secThread with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & BufferSize=" + Constants.BUFFERSIZE);
         //Measurements
         dataMeasurement.SampleSecond_up.clear();
         try {
@@ -366,7 +400,7 @@ public class ClientThread extends Thread {
     }
 
     private void Method_MV_Downlink_Server() {
-        System.out.println("MV_Downlink_1secThread with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & BufferSize=" + Constants.BLOCKSIZE);
+        System.out.println("MV_Downlink_1secThread with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & BufferSize=" + Constants.BUFFERSIZE);
         //Measurements
         try {
             //Downlink
@@ -424,7 +458,7 @@ public class ClientThread extends Thread {
     }
 
     private void Method_MV_UP_readVector_Server() {
-        System.out.println("MV_Uplink_readVector with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & BufferSize=" + Constants.BLOCKSIZE);
+        System.out.println("MV_Uplink_readVector with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & BufferSize=" + Constants.BUFFERSIZE);
         //Measurements
         dataMeasurement.SampleReadTime.clear();
         ByteSecondVector.clear();
@@ -451,7 +485,7 @@ public class ClientThread extends Thread {
     }
 
     private void Method_MV_DOWN_readVector_Server() {
-        System.out.println("MV_Downlink_readVector with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & BufferSize=" + Constants.BLOCKSIZE);
+        System.out.println("MV_Downlink_readVector with TCP_SND/RCV_Windows=" + Constants.SOCKET_RCVBUF + " & BufferSize=" + Constants.BUFFERSIZE);
         //Measurements
         try {
             //Uplink
@@ -533,6 +567,7 @@ public class ClientThread extends Thread {
             i = j;
         }
         return ByteSecondVector;
+
     }
 
     private class Tstudent {
