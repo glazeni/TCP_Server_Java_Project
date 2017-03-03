@@ -12,11 +12,11 @@ package Server;
 public class Constants {
 
     public static int NUMBER_BLOCKS = 1;
-    public static int BLOCKSIZE = 8000; //Mobiperf uses 1358 1460 without TCPHeader
+    public static int BLOCKSIZE = 256000; //Mobiperf uses 1358 1460 without TCPHeader
     public static int SO_TIMEOUT = 30000; //10sec - Receiving Timeout
-    public static int SOCKET_SNDBUF = 64000; //14,6 Kb
-    public static int SOCKET_RCVBUF = 64000; //14,6 Kb
+    public static int SOCKET_SNDBUF = 128000; //14,6 Kb
+    public static int SOCKET_RCVBUF = 128000; //14,6 Kb
     public static int SERVERPORT = 20000;
-    public static String SERVER_IP = "193.136.127.218";
+    public static String SERVER_IP = "localhost";
 
 }
