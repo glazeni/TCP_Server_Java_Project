@@ -21,6 +21,6 @@ public class Constants {
     // the gap of the size (in ns = 10^(-9)s)
     public static final double msParameter = 0.5;
     public static final long pktGapNS = (long) (msParameter * java.lang.Math.pow(10.0, 6.0));
-    public static String SERVER_IP = "localhost";
+    public static String SERVER_IP = "193.136.127.218";
 
 }
