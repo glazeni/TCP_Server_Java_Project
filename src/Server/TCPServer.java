@@ -36,7 +36,7 @@ public class TCPServer extends Thread {
             listenSocket = new ServerSocket(Constants.SERVERPORT);
             m_clientConnections = new ClientThread[MAX_CLIENTS];
             //ALGORITHM and ALGORITHM_UP are the same except for PGM and PT Methods in which there are just 1 TCP connection for Uplink and Downlink
-            ALGORITHM = "PT";
+            ALGORITHM = "PT_Uplink";
             //Algorithms defined for Downlink and Report
             //ALGORITHM_DOWN = "MV_Downlink";
             //ALGORITHM_REPORT = "MV_Report";

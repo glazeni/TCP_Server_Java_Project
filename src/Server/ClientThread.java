@@ -74,8 +74,14 @@ public class ClientThread extends Thread {
         try {
             dataOut.writeUTF(METHOD);
             switch (METHOD) {
-                case "PT":
-                    Method_PT();
+                case "PT_Uplink":
+                    Method_PT_Uplink();
+                    break;
+                case "PT_Downlink":
+
+                    break;
+                case "PT_Report":
+
                     break;
                 case "MV_Uplink":
                     isThreadMethod = true;
@@ -151,20 +157,18 @@ public class ClientThread extends Thread {
 
                 byteCounter += inputLine.length();
 
-                System.out.println("Received the " + (counter + 1) + " message with size: " + inputLine.length());
+                System.out.println("Received the " + (counter) + " message with size: " + inputLine.length());
                 // increase the counter which is equal to the number of packets
                 counter++;
-//                if (counter == num_packets-1) {
-//                    break;
-//                }
+                //read "END" msg
                 if (inputLine.substring(0, Constants.FINAL_MSG.length()).equals(Constants.FINAL_MSG)) {
-                    gapTimeClt = Double.parseDouble(inputLine.substring(Constants.FINAL_MSG.length()+1));
-                    System.out.println("Detect last uplink link message with GAP="+gapTimeClt);
+                    gapTimeClt = Double.parseDouble(inputLine.substring(Constants.FINAL_MSG.length() + 1));
+                    System.out.println("Detect last uplink link message with GAP=" + gapTimeClt);
                     break;
                 }
             }
             endTime = System.currentTimeMillis();
-            
+
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
@@ -253,6 +257,7 @@ public class ClientThread extends Thread {
         double diffTime = 0;
         try {
             System.out.println("downlink_Server_snd STARTED!");
+
             byte[] payload = new byte[Constants.PACKETSIZE];
             Random rand = new Random();
             // Randomize the payload with chars between 'a' to 'z' and 'A' to 'Z'  to assure there is no "\r\n"
@@ -261,6 +266,7 @@ public class ClientThread extends Thread {
             }
             //Send Packet Train
             dataOut.writeInt(Constants.NUMBER_PACKETS);
+            dataOut.flush();
             while (counter < Constants.NUMBER_PACKETS) {
                 // start recording the first packet send time
                 if (beforeTime == 0) {
@@ -270,7 +276,7 @@ public class ClientThread extends Thread {
                 outCtrl.println(new String(payload));
                 outCtrl.flush();
 
-                // create train gap in nanoseconds
+                // create train gap
                 try {
                     if (Constants.PACKET_GAP > 0) {
                         Thread.sleep(Constants.PACKET_GAP);
@@ -281,41 +287,25 @@ public class ClientThread extends Thread {
                 counter++;
             }
             afterTime = System.currentTimeMillis();
+            diffTime = afterTime - beforeTime;
+            outCtrl.println("END:" + diffTime);
+            outCtrl.flush();
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
-            diffTime = afterTime - beforeTime;
-            try {
-                dataOut.writeDouble(diffTime);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
             System.err.println("downlink_Server_snd DONE");
         }
     }
 
-//    private int PacketTrain() {
-//        Double AvaBW = null;
-//        double deltaN = lastPacket - firstPacket;
-//        int N = numberPackets;
-//        int L = 512;
-//        AvaBW = (((N - 1) * L) / deltaN) * 8;
-//        System.out.println("AvaBW: " + AvaBW + "\n");
-//        return AvaBW.intValue();
-//    }
-    private void Method_PT() {
-        System.out.println("Method_PT=" + Constants.SOCKET_RCVBUF + " & BufferSize=" + Constants.BUFFERSIZE);
+    private void Method_PT_Uplink() {
+        System.out.println("Method_PT_Uplink=" + Constants.SOCKET_RCVBUF + " & BufferSize=" + Constants.BUFFERSIZE);
         //Measurements
         try {
             //Uplink
-            AvailableBW_up.clear();
             dataOut.writeByte(1);
-            uplink_Server_rcv();
-
-            //Downlink 
-            dataIn.readByte();
-            downlink_Server_snd();
-
+            for (int p = 0; p < 10; p++) {
+                uplink_Server_rcv();
+            }
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
@@ -326,17 +316,17 @@ public class ClientThread extends Thread {
 //                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-AvalBW_uplink_NagleON", AvailableBW_up, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector());
 //            }
         }
-        //Receive Report Measurements - AvailableBW_down Vector
-        AvailableBW_down.clear();
-
-        dataMeasurement.ByteSecondShell_up.clear();
-
-        dataMeasurement.ByteSecondShell_down.clear();
-        tstudent = null;
-        tstudent_shellUP = null;
-        tstudent_shellDOWN = null;
-
-        try {
+//        //Receive Report Measurements - AvailableBW_down Vector
+//        AvailableBW_down.clear();
+//
+//        dataMeasurement.ByteSecondShell_up.clear();
+//
+//        dataMeasurement.ByteSecondShell_down.clear();
+//        tstudent = null;
+//        tstudent_shellUP = null;
+//        tstudent_shellDOWN = null;
+//
+//        try {
 //            //Receive AvailableBW_down Vector
 //            dataIn.readByte();
 //            int length = dataIn.readInt();
@@ -354,9 +344,9 @@ public class ClientThread extends Thread {
 //                dataMeasurement.ByteSecondShell_down.add(dataIn.readInt());
 //            }
 
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        } finally {
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//        } finally {
 //            tstudent = new Tstudent(AvailableBW_down);
 //            tstudent_shellUP = new Tstudent(dataMeasurement.ByteSecondShell_up);
 //            tstudent_shellDOWN = new Tstudent(dataMeasurement.ByteSecondShell_down);
@@ -369,9 +359,9 @@ public class ClientThread extends Thread {
 //                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_uplink_NagleON", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector());
 //                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_downlink_NagleON", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector());
 //            }
-            isAlgorithmDone = true;
-            System.err.println("Method_PT_Client along with Report is done!");
-        }
+//            isAlgorithmDone = true;
+//            System.err.println("Method_PT_Client along with Report is done!");
+//        }
     }
 
     private void Method_MV_Uplink_Server() {
