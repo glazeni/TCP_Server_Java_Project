@@ -148,8 +148,6 @@ public class ClientThread extends Thread {
         try {
             System.out.println("uplink_Server_rcv STARTED!");
             //Receive Packet Train
-            num_packets = dataIn.readInt();
-            System.out.println("NUM_PACKETS:" + num_packets);
             while ((inputLine = inCtrl.readLine()) != null) {
                 if (startTime == 0) {
                     startTime = System.currentTimeMillis();
@@ -267,8 +265,6 @@ public class ClientThread extends Thread {
                 payload[i] = (byte) ('A' + rand.nextInt(52));
             }
             //Send Packet Train
-            dataOut.writeInt(Constants.NUMBER_PACKETS);
-            dataOut.flush();
             while (counter < Constants.NUMBER_PACKETS) {
                 // start recording the first packet send time
                 if (beforeTime == 0) {
