@@ -12,6 +12,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Random;
 import java.util.Vector;
+import java.util.concurrent.locks.LockSupport;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.exception.MathIllegalArgumentException;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
@@ -279,10 +280,11 @@ public class ClientThread extends Thread {
 
                 // create train gap
                 try {
-                    if (Constants.PACKET_GAP > 0) {
-                        Thread.sleep(Constants.PACKET_GAP);
+                    if (Constants.PACKET_GAP > 0) {                        
+                        LockSupport.parkNanos(100000);
+                        //Thread.sleep(Constants.PACKET_GAP);
                     }
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 counter++;
