@@ -82,7 +82,11 @@ public class TCPServer extends Thread {
                     Constants.SOCKET_RCVBUF = dis.readInt();
                     Constants.SOCKET_SNDBUF = dis.readInt();
                     System.err.println("isNagleDisable: " + isNagleDisable);
-                    System.err.println("BLOCKSIZE:" + Constants.BUFFERSIZE + "\n" + "SO_RCV:" + Constants.SOCKET_RCVBUF + "\n" + "SO_SND:" + Constants.SOCKET_SNDBUF);
+                    System.err.println("NUMBER_PACKETS:"+Constants.NUMBER_PACKETS+"\n"+
+                            "PACKETSIZE:" + Constants.PACKETSIZE + "\n" + 
+                            "BUFFERSIZE:" + Constants.BUFFERSIZE + "\n" + 
+                            "SO_RCV:" + Constants.SOCKET_RCVBUF + "\n" + 
+                            "SO_SND:" + Constants.SOCKET_SNDBUF);
                     //Create New Client
                     TCP_param = new TCP_Properties(clientSocket, isNagleDisable);
                     clientSession.put(ID, clientSocket);

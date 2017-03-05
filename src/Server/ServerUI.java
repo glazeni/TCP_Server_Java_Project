@@ -454,7 +454,6 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         try {
             //Create a Second object to solve duplicate time series
             series.addOrUpdate(new Second(new Date(), TimeZone.getDefault()), RTInputStream.bytesGraph);
-
             //System.err.println("RTin.byteCnt="+RTInputStream.byteCnt);
         } catch (Exception ex) {
             ex.printStackTrace();
