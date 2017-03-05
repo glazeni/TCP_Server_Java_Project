@@ -37,7 +37,7 @@ public class ClientThread extends Thread {
     private boolean isAlgorithmDone = false;
     private boolean isThreadMethod;
     private boolean isNagleDisable;
-    private String METHOD = null; //PGM-ProbeGapModel; PT-PacketTrain; MV-Moving Average; ACKTIMING-Write time Gap
+    private String METHOD = null; // PT-PacketTrain; MV-Moving Average; 
 
     private Vector<Double> AvailableBW_up = null;
     private Vector<Double> AvailableBW_down = null;
@@ -45,7 +45,7 @@ public class ClientThread extends Thread {
 
     private int ID = 0;
     private int byteCnt = 0;
-    private long runningTime = 35000;
+    private long runningTime = 32000;
 
     public ClientThread(int _ID, String _METHOD, Socket _clientSocket, DataMeasurement _dataMeasurement, boolean _isNagleDisable) {
         try {
