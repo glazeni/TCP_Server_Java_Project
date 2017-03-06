@@ -10,6 +10,10 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.util.Vector;
 
+/**
+ *
+ * @author glazen
+ */
 public class RTInputStream extends FilterInputStream {
 
     private int bytesTotal = 0;

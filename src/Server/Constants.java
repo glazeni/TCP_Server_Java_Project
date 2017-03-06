@@ -19,7 +19,7 @@ public class Constants {
     public static int SOCKET_RCVBUF = 128000; //128 Kb
     public static int SERVERPORT = 20000;
     public static final String FINAL_MSG = "END";
-    public static final long PACKET_GAP= 1;
+    public static long PACKET_GAP=0;
     public static String SERVER_IP = "193.136.127.218";
 
 }

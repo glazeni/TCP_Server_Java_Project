@@ -277,8 +277,8 @@ public class ClientThread extends Thread {
                 // create train gap
                 try {
                     if (Constants.PACKET_GAP > 0) {                        
-                        LockSupport.parkNanos(100000);
-                        //Thread.sleep(Constants.PACKET_GAP);
+                        //LockSupport.parkNanos(100000);
+                        Thread.sleep(Constants.PACKET_GAP);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -301,12 +301,10 @@ public class ClientThread extends Thread {
         //Measurements
         try {
             //Uplink
-            double BW = 0;
             dataOut.writeByte(1);
             for (int p = 0; p < 10; p++) {
-                BW = 0;
                 dataOut.writeByte(1);
-                BW = uplink_Server_rcv();
+                double BW = uplink_Server_rcv();
                 AvailableBW_up.add(BW);
             }
         } catch (IOException ex) {
@@ -326,6 +324,7 @@ public class ClientThread extends Thread {
             //Downlink
             dataOut.writeByte(2);
             for (int p = 0; p < 10; p++) {
+                Constants.PACKET_GAP=p;
                 dataIn.readByte();
                 downlink_Server_snd();
             }

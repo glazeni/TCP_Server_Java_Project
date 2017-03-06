@@ -33,7 +33,7 @@ public class Connection extends Thread {
     private boolean isThreadMethod;
     private String METHOD = null;
     private TCP_Properties TCP_param = null;
-    private long runningTime = 35000;
+    private long runningTime = 32000;
     private int ID = 0;
     private boolean isNagleDisable;
 
@@ -125,8 +125,6 @@ public class Connection extends Thread {
                 payload[i] = (byte) ('A' + rand.nextInt(52));
             }
             //Send Packet Train
-            dataOut.writeInt(Constants.NUMBER_PACKETS);
-            dataOut.flush();
             while (counter < Constants.NUMBER_PACKETS) {
                 // start recording the first packet send time
                 if (beforeTime == 0) {
@@ -139,8 +137,8 @@ public class Connection extends Thread {
                 // create train gap
                 try {
                     if (Constants.PACKET_GAP > 0) {
-                        LockSupport.parkNanos(100);
-                        //Thread.sleep(Constants.PACKET_GAP);
+                        //LockSupport.parkNanos(100);
+                        Thread.sleep(Constants.PACKET_GAP);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -232,8 +230,6 @@ public class Connection extends Thread {
         try {
             System.out.println("downlink_Client_rcv STARTED!");
             //Receive Packet Train
-            num_packets = dataIn.readInt();
-            System.out.println("NUM_PACKETS:" + num_packets);
             while ((inputLine = inCtrl.readLine()) != null) {
                 if (startTime == 0) {
                     startTime = System.currentTimeMillis();
@@ -320,11 +316,9 @@ public class Connection extends Thread {
             //Downlink App
             dataMeasurement.AvailableBW_Down.clear();
             dataIn.readByte();
-            double BW = 0;
             for (int p = 0; p < 10; p++) {
-                BW = 0;
                 dataOut.writeByte(2);
-                BW = downlink_Client_rcv();
+                double BW = downlink_Client_rcv();
                 dataMeasurement.AvailableBW_Down.add(BW);
             }
             //Run Iperf
