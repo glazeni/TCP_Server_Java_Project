@@ -16,12 +16,14 @@ import java.util.concurrent.locks.LockSupport;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.exception.MathIllegalArgumentException;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
+import org.apache.commons.math3.stat.descriptive.moment.Mean;
 
 public class ClientThread extends Thread {
 
     private Socket clientSocket = null;
     private WriteXMLFile_bytes1sec writeXMLFile_bytes1sec = null;
     private WriteXMLFile_AvailBWVectors writeXMLFile_AvailBWVectors = null;
+    private WriteXMLFile_GraphBW_TCPwindows writeXMLFile_GraphBW_TCPwindows = null;
     private RTInputStream RTin = null;
     private RTOutputStream RTout = null;
     private DataInputStream dataIn = null;
@@ -45,7 +47,7 @@ public class ClientThread extends Thread {
 
     private int ID = 0;
     private int byteCnt = 0;
-    private long runningTime = 32000;
+    private long runningTime = 10000;
 
     public ClientThread(int _ID, String _METHOD, Socket _clientSocket, DataMeasurement _dataMeasurement, boolean _isNagleDisable) {
         try {
@@ -65,7 +67,7 @@ public class ClientThread extends Thread {
             AvailableBW_down = new Vector<Double>();
             ByteSecondVector = new Vector<Integer>();
         } catch (IOException ex) {
-            System.err.println("Client Thread Failure:" + ex.getMessage());
+            System.out.println("Client Thread Failure:" + ex.getMessage());
         }
     }
 
@@ -118,7 +120,7 @@ public class ClientThread extends Thread {
             try {
                 if (clientSocket != null) {
                     clientSocket.close();
-                    System.err.println("                                                     clientSocket CLOSED!");
+                    System.out.println("                                                     clientSocket CLOSED!");
                 }
                 if (isAlgorithmDone) {
                     TCPServer.clientSession.remove(this.ID);
@@ -186,7 +188,7 @@ public class ClientThread extends Thread {
             System.out.println("Estimated Total upload bandwidth is " + estTotalUpBandWidth + " Mbits/sec.");
             System.out.println("Availabe fraction is " + availableBWFraction);
             System.out.println("Estimated Available upload bandwidth is " + estAvailiableUpBandWidth + " Mbits/sec.");
-            System.err.println("uplink_Server_rcv DONE");
+            System.out.println("uplink_Server_rcv DONE");
         }
         return estAvailiableUpBandWidth;
     }
@@ -195,7 +197,7 @@ public class ClientThread extends Thread {
         try {
             byte[] rcv_buf = new byte[Constants.BUFFERSIZE];
             int n = 0;
-            System.out.println("\nuplink_Server_rcvInSeconds");
+            System.out.println("\nuplink_Server_rcvInSeconds STARTED!");
             //Initialize Timer
             if (isThreadMethod) {
                 reminderServer = new ReminderServer(1, this.dataMeasurement, this.RTin);
@@ -203,21 +205,21 @@ public class ClientThread extends Thread {
             while (System.currentTimeMillis() < _end) {
                 byteCnt = 0;
                 //Cycle to read each block
-                do {
-                    n = RTin.read(rcv_buf, byteCnt, Constants.BUFFERSIZE - byteCnt);
-                    //n= RTin.read(rcv_buf);
-                    if (n > 0) {
-                        byteCnt += n;
-                        if (!isThreadMethod) {
-                            dataMeasurement.add_SampleReadTime(n, System.currentTimeMillis());
-                        }
-
-                    } else {
-                        System.out.println("Read n<0");
-                        break;
+                //do {
+                n = RTin.read(rcv_buf, byteCnt, Constants.BUFFERSIZE - byteCnt);
+                //n= RTin.read(rcv_buf);
+                if (n > 0) {
+                    byteCnt += n;
+                    if (!isThreadMethod) {
+                        dataMeasurement.add_SampleReadTime(n, System.currentTimeMillis());
                     }
 
-                } while ((n > 0) && (byteCnt < Constants.BUFFERSIZE));
+                } else {
+                    System.out.println("Read n<0");
+                    break;
+                }
+
+                //} while ((n > 0) && (byteCnt < Constants.BUFFERSIZE));
                 if (n == -1) {
                     System.out.println("Exited with n=-1");
                     break;
@@ -230,11 +232,13 @@ public class ClientThread extends Thread {
             if (isThreadMethod) {
                 reminderServer.cancelTimer();
             }
+            System.out.println("\nuplink_Server_rcvInSeconds DONE!");
         }
 
     }
 
     private boolean downlink_Server_sndInSeconds() {
+        System.out.println("\ndownlink_Server_sndInSeconds STARTED!");
         boolean keepRunning = true;
         try {
             byte[] snd_buf = new byte[Constants.BUFFERSIZE];
@@ -246,6 +250,7 @@ public class ClientThread extends Thread {
         } catch (IOException ex) {
             return false;
         } finally {
+            System.out.println("\ndownlink_Server_sndInSeconds DONE!");
             keepRunning = false;
         }
     }
@@ -276,10 +281,9 @@ public class ClientThread extends Thread {
 
                 // create train gap
                 try {
-                    if (Constants.PACKET_GAP > 0) {                        
-                        //LockSupport.parkNanos(100000);
-                        Thread.sleep(Constants.PACKET_GAP);
-                    }
+                    LockSupport.parkNanos(Constants.PACKET_GAP);
+                    //Thread.sleep(Constants.PACKET_GAP);
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -292,40 +296,54 @@ public class ClientThread extends Thread {
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
-            System.err.println("downlink_Server_snd DONE");
+            System.out.println("downlink_Server_snd DONE");
         }
     }
 
     private void Method_PT_Uplink() {
-        System.out.println("Method_PT_Uplink=" + Constants.SOCKET_RCVBUF + " & BufferSize=" + Constants.BUFFERSIZE);
+        System.out.println("Method_PT_Uplink with BufferSize=" + Constants.BUFFERSIZE + "& PacketSize=" + Constants.PACKETSIZE);
         //Measurements
+        Vector<Integer> GAP_PacketSizeVector = new Vector<Integer>();
         try {
             //Uplink
             dataOut.writeByte(1);
-            for (int p = 0; p < 10; p++) {
+            for (int p = 1; p < 11; p++) {
                 dataOut.writeByte(1);
                 double BW = uplink_Server_rcv();
                 AvailableBW_up.add(BW);
+                GAP_PacketSizeVector.add(512*p);
             }
+
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
-            tstudent = new Tstudent(AvailableBW_up, true);
-            if (isNagleDisable) {
-                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-AvalBW_uplink_NagleOFF", AvailableBW_up, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector());
-            } else {
-                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-AvalBW_uplink_NagleON", AvailableBW_up, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector());
-            }
+            //GraphBW(PACKET_GAP)
+            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "PacketTrain-Uplink", AvailableBW_up, GAP_PacketSizeVector);
+
+            //Export to XML
+//            tstudent = new Tstudent(AvailableBW_up, true);
+//            if (isNagleDisable) {
+//                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-AvalBW_uplink_NagleOFF", AvailableBW_up, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector());
+//            } else {
+//                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-AvalBW_uplink_NagleON", AvailableBW_up, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector());
+//            }
         }
     }
 
     private void Method_PT_Downlink() {
+        System.out.println("Method_PT_Downlink with BufferSize=" + Constants.BUFFERSIZE + "& PacketSize=" + Constants.PACKETSIZE);
+        dataMeasurement.GAP_PacketSizeVector.clear();
         try {
             //Downlink
             dataOut.writeByte(2);
-            for (int p = 0; p < 10; p++) {
-                Constants.PACKET_GAP=p;
-                dataIn.readByte();
+            for (int p = 1; p < 11; p++) {
+//                Constants.PACKET_GAP = (int) Math.pow(10, p);
+//                dataMeasurement.GAP_PacketSizeVector.add((int) Constants.PACKET_GAP);
+//                System.out.println("PACKET_GAP=" + Constants.PACKET_GAP);
+                Constants.PACKETSIZE = 1460*p;
+                dataMeasurement.GAP_PacketSizeVector.add((int) Constants.PACKETSIZE);
+                System.out.println("PACKET_SIZE=" + Constants.PACKETSIZE);                
+                dataIn.readByte(); 
                 downlink_Server_snd();
             }
         } catch (IOException ex) {
@@ -361,20 +379,26 @@ public class ClientThread extends Thread {
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
-            tstudent = new Tstudent(AvailableBW_down, true);
             tstudent_shellUP = new Tstudent(dataMeasurement.ByteSecondShell_up);
             tstudent_shellDOWN = new Tstudent(dataMeasurement.ByteSecondShell_down);
-            if (isNagleDisable) {
-                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-AvalBW_downlink_NagleOFF", AvailableBW_down, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector());
-                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_uplink_NagleOFF", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector(), true);
-                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_downlink_NagleOFF", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector(), true);
-            } else {
-                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-AvalBW_downlink_NagleON", AvailableBW_down, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector());
-                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_uplink_NagleON", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector(), true);
-                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_downlink_NagleON", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector(), true);
-            }
+            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "PacketTrain-Downlink", AvailableBW_down, dataMeasurement.GAP_PacketSizeVector);
+            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "PacketTrain-Uplink_Iperf", tstudent_shellUP.getMeanVector(), true);
+            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "PacketTrain-Downlink_Iperf", tstudent_shellDOWN.getMeanVector(), true);
+
+//            tstudent = new Tstudent(AvailableBW_down, true);
+//            tstudent_shellUP = new Tstudent(dataMeasurement.ByteSecondShell_up);
+//            tstudent_shellDOWN = new Tstudent(dataMeasurement.ByteSecondShell_down);
+//            if (isNagleDisable) {
+//                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-AvalBW_downlink_NagleOFF", AvailableBW_down, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector());
+//                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_uplink_NagleOFF", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector(), true);
+//                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_downlink_NagleOFF", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector(), true);
+//            } else {
+//                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-AvalBW_downlink_NagleON", AvailableBW_down, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector());
+//                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_uplink_NagleON", dataMeasurement.ByteSecondShell_up, tstudent_shellUP.getTotalBytes(), tstudent_shellUP.getMeanVector(), tstudent_shellUP.getLowerBoundVector(), tstudent_shellUP.getUpperBoundVector(), true);
+//                writeXMLFile_AvailBWVectors = new WriteXMLFile_AvailBWVectors(ID + " PT-iperfShell_downlink_NagleON", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector(), true);
+//            }
             isAlgorithmDone = true;
-            System.err.println("Method_PT_Client along with Report is done!");
+            System.out.println("Method_PT_Client along with Report is done!");
         }
 
     }
@@ -392,6 +416,11 @@ public class ClientThread extends Thread {
             ex.printStackTrace();
         } finally {
             try {
+                //GraphBW(TCPWindows)
+                TCPServer.GraphBW_up.add(getMean(dataMeasurement.SampleSecond_up));
+                TCPServer.GraphTCPWindow_up.add(Constants.SOCKET_RCVBUF);
+
+                //Export to XML
                 tstudent = new Tstudent(dataMeasurement.SampleSecond_up);
                 if (isNagleDisable) {
                     writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " thesisSettings_Uplink-MV-1secBytes_NagleOFF", dataMeasurement.SampleSecond_up, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_1secThread/");
@@ -446,6 +475,15 @@ public class ClientThread extends Thread {
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
+            //GraphBW(TCPwindow)
+            TCPServer.GraphBW_down.add(getMean(dataMeasurement.SampleSecond_down));
+            TCPServer.GraphTCPWindow_down.add(Constants.SOCKET_RCVBUF);
+            TCPServer.GraphBW_up_Iperf.add(getMean(dataMeasurement.ByteSecondShell_up));
+            TCPServer.GraphTCPWindow_up_Iperf.add(Constants.SOCKET_RCVBUF);
+            TCPServer.GraphBW_down_Iperf.add(getMean(dataMeasurement.ByteSecondShell_down));
+            TCPServer.GraphTCPWindow_down_Iperf.add(Constants.SOCKET_RCVBUF);
+
+            //Export to XML
             tstudent = new Tstudent(dataMeasurement.SampleSecond_down);
             tstudent_shellUP = new Tstudent(dataMeasurement.ByteSecondShell_up);
             tstudent_shellDOWN = new Tstudent(dataMeasurement.ByteSecondShell_down);
@@ -459,7 +497,7 @@ public class ClientThread extends Thread {
                 writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " thesisSettings_iperfShell_Downlink-MV-1secBytes_NagleON", dataMeasurement.ByteSecondShell_down, tstudent_shellDOWN.getTotalBytes(), tstudent_shellDOWN.getMeanVector(), tstudent_shellDOWN.getLowerBoundVector(), tstudent_shellDOWN.getUpperBoundVector(), "MV_1secThread/");
             }
             isAlgorithmDone = true;
-            System.err.println("Method_MV_Server along with Report is done!");
+            System.out.println("Method_MV_Server along with Report is done!");
         }
     }
 
@@ -477,7 +515,14 @@ public class ClientThread extends Thread {
             ex.printStackTrace();
         } finally {
             try {
+                //Calculate Moving Average
                 ByteSecondVector = MovingAverageCalculation(dataMeasurement.SampleReadTime);
+
+                //GraphBW(TCPWindows)
+                TCPServer.GraphBW_up.add(getMean(ByteSecondVector));
+                TCPServer.GraphTCPWindow_up.add(Constants.SOCKET_RCVBUF);
+
+                //Export to XML
                 tstudent = new Tstudent(ByteSecondVector);
                 if (isNagleDisable) {
                     writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec(ID + " thesisSettings_Uplink-MV_readVector_NagleOFF", ByteSecondVector, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "MV_readVector/");
@@ -532,7 +577,18 @@ public class ClientThread extends Thread {
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
+            //Calculate Moving Average
             ByteSecondVector = MovingAverageCalculation(dataMeasurement.SampleReadTime);
+
+            //GraphBW(TCPwindow)
+            TCPServer.GraphBW_down.add(getMean(ByteSecondVector));
+            TCPServer.GraphTCPWindow_down.add(Constants.SOCKET_RCVBUF);
+            TCPServer.GraphBW_up_Iperf.add(getMean(dataMeasurement.ByteSecondShell_up));
+            TCPServer.GraphTCPWindow_up_Iperf.add(Constants.SOCKET_RCVBUF);
+            TCPServer.GraphBW_down_Iperf.add(getMean(dataMeasurement.ByteSecondShell_down));
+            TCPServer.GraphTCPWindow_down_Iperf.add(Constants.SOCKET_RCVBUF);
+
+            //Export to XML
             tstudent = new Tstudent(ByteSecondVector);
             tstudent_shellUP = new Tstudent(dataMeasurement.ByteSecondShell_up);
             tstudent_shellDOWN = new Tstudent(dataMeasurement.ByteSecondShell_down);
@@ -547,7 +603,7 @@ public class ClientThread extends Thread {
             }
 
             isAlgorithmDone = true;
-            System.err.println("Method_MV_readVector_Server along with Report is done!");
+            System.out.println("Method_MV_readVector_Server along with Report is done!");
         }
     }
 
@@ -670,4 +726,11 @@ public class ClientThread extends Thread {
         }
     }
 
+    private double getMean(Vector<Integer> Vector) {
+        SummaryStatistics stats = new SummaryStatistics();
+        for (int i = 0; i < Vector.size(); i++) {
+            stats.addValue(Vector.get(i));
+        }
+        return stats.getMean();
+    }
 }

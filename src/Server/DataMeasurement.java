@@ -39,6 +39,7 @@ public class DataMeasurement {
     protected Vector<Integer> SampleSecond_up = null;
     protected Vector<Integer> SampleSecond_down = null;
     protected Vector<Double> AvailableBW_Down = null;
+    protected Vector<Integer> GAP_PacketSizeVector = null;
 
     public DataMeasurement() {
         try {
@@ -50,6 +51,7 @@ public class DataMeasurement {
             SampleSecond_up = new Vector<Integer>();
             SampleSecond_down = new Vector<Integer>();
             AvailableBW_Down = new Vector<Double>();
+            GAP_PacketSizeVector = new Vector<Integer>();
         } catch (Exception ex) {
             ex.getStackTrace();
         }

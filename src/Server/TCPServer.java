@@ -6,9 +6,13 @@ import java.net.*;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class TCPServer extends Thread {
 
+    private WriteXMLFile_GraphBW_TCPwindows writeXMLFile_GraphBW_TCPwindows = null;
     private Socket clientSocket = null;
     private ServerSocket listenSocket = null;
     private TCP_Properties TCP_param = null;
@@ -28,18 +32,37 @@ public class TCPServer extends Thread {
     private int MAX_CLIENTS = 30; // Depending on the Method, a client might need to use 3 sockets, so the MAX_CLIENTS is 10.
     private ClientThread[] m_clientConnections = null;
 
+    public static Vector<Double> GraphBW_up = null;
+    public static Vector<Double> GraphBW_down = null;
+    public static Vector<Integer> GraphTCPWindow_up = null;
+    public static Vector<Integer> GraphTCPWindow_down = null;
+    public static Vector<Double> GraphBW_up_Iperf = null;
+    public static Vector<Double> GraphBW_down_Iperf = null;
+    public static Vector<Integer> GraphTCPWindow_up_Iperf = null;
+    public static Vector<Integer> GraphTCPWindow_down_Iperf = null;
+    private int numRuns = 0;
+
     public TCPServer() {
         try {
+            GraphBW_up = new Vector<Double>();
+            GraphBW_down = new Vector<Double>();
+            GraphTCPWindow_up = new Vector<Integer>();
+            GraphTCPWindow_down = new Vector<Integer>();
+            GraphBW_up_Iperf = new Vector<Double>();
+            GraphBW_down_Iperf = new Vector<Double>();
+            GraphTCPWindow_up_Iperf = new Vector<Integer>();
+            GraphTCPWindow_down_Iperf = new Vector<Integer>();
+
             clientSession = new HashMap<>();
             clientBoolean = new HashMap<>();
             clientMeasurement = new HashMap<>();
             listenSocket = new ServerSocket(Constants.SERVERPORT);
             m_clientConnections = new ClientThread[MAX_CLIENTS];
             //ALGORITHM and ALGORITHM_UP are the same except for PGM and PT Methods in which there are just 1 TCP connection for Uplink and Downlink
-            ALGORITHM = "MV_Uplink";
+            ALGORITHM = "PT_Uplink";
             //Algorithms defined for Downlink and Report
-            ALGORITHM_DOWN = "MV_Downlink";
-            ALGORITHM_REPORT = "MV_Report";
+            ALGORITHM_DOWN = "PT_Downlink";
+            ALGORITHM_REPORT = "PT_Report";
             //isIperfSettings = _isIperfSettings; //true - Iperf Settings; false - Thesis Settings
             //isNagleDisable = _isNagleDisable; //true - Enable Nagle's Algorithm; false - Disable Nagle's Algorithm
         } catch (Exception ex) {
@@ -68,6 +91,8 @@ public class TCPServer extends Thread {
                         throw new IOException();
                     }
                 } catch (IOException ex) {
+                    System.out.println("NUMBER_RUNS=" + numRuns);
+                    //Generate Random Integer ID
                     ID = new Random().nextInt();
 
                     //Send ID to the Client
@@ -82,11 +107,12 @@ public class TCPServer extends Thread {
                     Constants.SOCKET_RCVBUF = dis.readInt();
                     Constants.SOCKET_SNDBUF = dis.readInt();
                     System.err.println("isNagleDisable: " + isNagleDisable);
-                    System.err.println("NUMBER_PACKETS:"+Constants.NUMBER_PACKETS+"\n"+
-                            "PACKETSIZE:" + Constants.PACKETSIZE + "\n" + 
-                            "BUFFERSIZE:" + Constants.BUFFERSIZE + "\n" + 
-                            "SO_RCV:" + Constants.SOCKET_RCVBUF + "\n" + 
-                            "SO_SND:" + Constants.SOCKET_SNDBUF);
+                    System.err.println("GAP:" + Constants.PACKET_GAP+"\n"
+                            + "NUMBER_PACKETS:" + Constants.NUMBER_PACKETS + "\n"
+                            + "PACKETSIZE:" + Constants.PACKETSIZE + "\n"
+                            + "BUFFERSIZE:" + Constants.BUFFERSIZE + "\n"
+                            + "SO_RCV:" + Constants.SOCKET_RCVBUF + "\n"
+                            + "SO_SND:" + Constants.SOCKET_SNDBUF);
                     //Create New Client
                     TCP_param = new TCP_Properties(clientSocket, isNagleDisable);
                     clientSession.put(ID, clientSocket);
@@ -99,6 +125,7 @@ public class TCPServer extends Thread {
                             break;
                         }
                     }
+                    //Run Iperf Server from JAVA
                     //proc = Runtime.getRuntime().exec("iperf3 -s -p 20001");
                     continue;
                 }
@@ -108,6 +135,25 @@ public class TCPServer extends Thread {
                     TCP_param = new TCP_Properties(clientSocket, isNagleDisable);
                     Thread c = new ClientThread(this.ID, ALGORITHM_REPORT, clientSocket, clientMeasurement.get(ID), isNagleDisable);
                     c.start();
+                    c.join();
+                    //Export GraphBW(TCPwindow)
+//                    if (numRuns == 9) {
+//                        if (isNagleDisable) {
+//                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Uplink-NagleOFF", GraphBW_up, GraphTCPWindow_up);
+//                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Downlink-NagleOFF", GraphBW_down, GraphTCPWindow_down);
+//                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Uplink_Iperf-NagleOFF", GraphBW_up_Iperf, GraphTCPWindow_up_Iperf);
+//                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Downlink_Iperf-NagleOFF", GraphBW_down_Iperf, GraphTCPWindow_down_Iperf);
+//                        } else {
+//                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Uplink-NagleON", GraphBW_up, GraphTCPWindow_up);
+//                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Downlink-NagleON", GraphBW_down, GraphTCPWindow_down);
+//                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Uplink_Iperf-NagleON", GraphBW_up_Iperf, GraphTCPWindow_up_Iperf);
+//                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Downlink_Iperf-NagleON", GraphBW_down_Iperf, GraphTCPWindow_down_Iperf);
+//                        }
+//
+//                        break;
+//                    }
+                    //Increment Number of Runs    
+                    numRuns++;
                 } else if (clientSession.containsKey(ID) && clientBoolean.containsKey(ID) && clientBoolean.get(ID)) {
                     //Downlink
                     clientBoolean.put(ID, false);
@@ -120,6 +166,8 @@ public class TCPServer extends Thread {
         } catch (IOException ex) {
             ex.printStackTrace();
             System.err.println("Server initialization failure " + ex.getMessage());
+        } catch (InterruptedException ex) {
+            Logger.getLogger(TCPServer.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             keepRunning = false;
             if (listenSocket != null) {

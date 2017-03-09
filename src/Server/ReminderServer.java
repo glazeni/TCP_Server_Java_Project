@@ -8,6 +8,7 @@ package Server;
 import java.util.Timer;
 import java.util.TimerTask;
 
+
 /**
  *
  * @author glazen
@@ -27,12 +28,11 @@ public class ReminderServer extends Thread {
         timer.scheduleAtFixedRate(new RemindTask(this.RTin), 0, (seconds * 1000));
     }
     
-    public void cancelTimer(){
+    public synchronized void cancelTimer(){
         timer.cancel();
     }
 
     class RemindTask extends TimerTask {
-
         private RTInputStream RTinput = null;
 
         public RemindTask(RTInputStream _RTinput) {
