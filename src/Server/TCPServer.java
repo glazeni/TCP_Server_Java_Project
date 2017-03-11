@@ -59,10 +59,10 @@ public class TCPServer extends Thread {
             listenSocket = new ServerSocket(Constants.SERVERPORT);
             m_clientConnections = new ClientThread[MAX_CLIENTS];
             //ALGORITHM and ALGORITHM_UP are the same except for PGM and PT Methods in which there are just 1 TCP connection for Uplink and Downlink
-            ALGORITHM = "PT_Uplink";
+            ALGORITHM = "MV_Uplink";
             //Algorithms defined for Downlink and Report
-            ALGORITHM_DOWN = "PT_Downlink";
-            ALGORITHM_REPORT = "PT_Report";
+            ALGORITHM_DOWN = "MV_Downlink";
+            ALGORITHM_REPORT = "MV_Report";
             //isIperfSettings = _isIperfSettings; //true - Iperf Settings; false - Thesis Settings
             //isNagleDisable = _isNagleDisable; //true - Enable Nagle's Algorithm; false - Disable Nagle's Algorithm
         } catch (Exception ex) {
@@ -137,21 +137,21 @@ public class TCPServer extends Thread {
                     c.start();
                     c.join();
                     //Export GraphBW(TCPwindow)
-//                    if (numRuns == 9) {
-//                        if (isNagleDisable) {
-//                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Uplink-NagleOFF", GraphBW_up, GraphTCPWindow_up);
-//                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Downlink-NagleOFF", GraphBW_down, GraphTCPWindow_down);
-//                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Uplink_Iperf-NagleOFF", GraphBW_up_Iperf, GraphTCPWindow_up_Iperf);
-//                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Downlink_Iperf-NagleOFF", GraphBW_down_Iperf, GraphTCPWindow_down_Iperf);
-//                        } else {
-//                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Uplink-NagleON", GraphBW_up, GraphTCPWindow_up);
-//                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Downlink-NagleON", GraphBW_down, GraphTCPWindow_down);
-//                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Uplink_Iperf-NagleON", GraphBW_up_Iperf, GraphTCPWindow_up_Iperf);
-//                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Downlink_Iperf-NagleON", GraphBW_down_Iperf, GraphTCPWindow_down_Iperf);
-//                        }
-//
-//                        break;
-//                    }
+                    if (numRuns == 9) {
+                        if (isNagleDisable) {
+                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Uplink-NagleOFF", GraphBW_up, GraphTCPWindow_up);
+                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Downlink-NagleOFF", GraphBW_down, GraphTCPWindow_down);
+                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Uplink_Iperf-NagleOFF", GraphBW_up_Iperf, GraphTCPWindow_up_Iperf);
+                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Downlink_Iperf-NagleOFF", GraphBW_down_Iperf, GraphTCPWindow_down_Iperf);
+                        } else {
+                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Uplink-NagleON", GraphBW_up, GraphTCPWindow_up);
+                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Downlink-NagleON", GraphBW_down, GraphTCPWindow_down);
+                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Uplink_Iperf-NagleON", GraphBW_up_Iperf, GraphTCPWindow_up_Iperf);
+                            writeXMLFile_GraphBW_TCPwindows = new WriteXMLFile_GraphBW_TCPwindows(ID + "-" + ALGORITHM_REPORT + "-Downlink_Iperf-NagleON", GraphBW_down_Iperf, GraphTCPWindow_down_Iperf);
+                        }
+
+                        break;
+                    }
                     //Increment Number of Runs    
                     numRuns++;
                 } else if (clientSession.containsKey(ID) && clientBoolean.containsKey(ID) && clientBoolean.get(ID)) {
@@ -181,8 +181,8 @@ public class TCPServer extends Thread {
         }
     }
 
-    public static void main(String[] args) {
-        TCPServer tcpServ = new TCPServer();
-        tcpServ.start();
-    }
+//    public static void main(String[] args) {
+//        TCPServer tcpServ = new TCPServer();
+//        tcpServ.start();
+//    }
 }

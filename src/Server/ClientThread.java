@@ -430,7 +430,6 @@ public class ClientThread extends Thread {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-
         }
     }
 
