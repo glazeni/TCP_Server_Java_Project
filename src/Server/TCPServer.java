@@ -101,8 +101,8 @@ public class TCPServer extends Thread {
                     dos.writeInt(ID);
                     dos.flush();
                     isNagleDisable = dis.readBoolean();
-                    Constants.NUMBER_PACKETS = dis.readInt();
-                    Constants.PACKETSIZE = dis.readInt();
+//                    Constants.NUMBER_PACKETS = dis.readInt();
+//                    Constants.PACKETSIZE = dis.readInt();
                     Constants.BUFFERSIZE = dis.readInt();
                     Constants.SOCKET_RCVBUF = dis.readInt();
                     Constants.SOCKET_SNDBUF = dis.readInt();

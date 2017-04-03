@@ -54,6 +54,7 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
     public ServerUI() {
         initComponents();
         timer = new javax.swing.Timer(1000, this);
+        timer.start();
         setInterfaceEnable(false);
         DynamicLineAndTimeSeriesChart("Data Measurement");
 
@@ -575,7 +576,6 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
         } finally {
             jTextIPserver.setEnabled(false);
             jTextPortServer.setEnabled(false);
-            timer.start();
         }
     }//GEN-LAST:event_jRadioClientButtonActionPerformed
 
