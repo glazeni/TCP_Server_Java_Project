@@ -107,7 +107,7 @@ public class TCPServer extends Thread {
                     Constants.SOCKET_RCVBUF = dis.readInt();
                     Constants.SOCKET_SNDBUF = dis.readInt();
                     System.err.println("isNagleDisable: " + isNagleDisable);
-                    System.err.println("GAP:" + Constants.PACKET_GAP+"\n"
+                    System.err.println("GAP:" + Constants.PACKET_GAP + "\n"
                             + "NUMBER_PACKETS:" + Constants.NUMBER_PACKETS + "\n"
                             + "PACKETSIZE:" + Constants.PACKETSIZE + "\n"
                             + "BUFFERSIZE:" + Constants.BUFFERSIZE + "\n"
@@ -136,6 +136,7 @@ public class TCPServer extends Thread {
                     Thread c = new ClientThread(this.ID, ALGORITHM_REPORT, clientSocket, clientMeasurement.get(ID), isNagleDisable);
                     c.start();
                     c.join();
+                    /*
                     //Export GraphBW(TCPwindow)
                     if (numRuns == 9) {
                         if (isNagleDisable) {
@@ -154,13 +155,14 @@ public class TCPServer extends Thread {
                     }
                     //Increment Number of Runs    
                     numRuns++;
+                     */
                 } else if (clientSession.containsKey(ID) && clientBoolean.containsKey(ID) && clientBoolean.get(ID)) {
                     //Downlink
                     clientBoolean.put(ID, false);
                     TCP_param = new TCP_Properties(clientSocket, isNagleDisable);
                     Thread c = new ClientThread(this.ID, ALGORITHM_DOWN, clientSocket, clientMeasurement.get(ID), isNagleDisable);
                     c.start();
-
+                    c.join();
                 }
             }
         } catch (IOException ex) {
@@ -181,8 +183,8 @@ public class TCPServer extends Thread {
         }
     }
 
-//    public static void main(String[] args) {
-//        TCPServer tcpServ = new TCPServer();
-//        tcpServ.start();
-//    }
+    public static void main(String[] args) {
+        TCPServer tcpServ = new TCPServer();
+        tcpServ.start();
+    }
 }

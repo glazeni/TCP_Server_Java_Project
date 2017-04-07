@@ -7,7 +7,6 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -32,10 +31,7 @@ public class ClientThread extends Thread {
     private DataOutputStream dataOut = null;
     private PrintWriter outCtrl = null;
     private BufferedReader inCtrl = null;
-    private PrintStream printStream = null;
-    private InputStream inputStream = null;
-            
-            
+
     private DataMeasurement dataMeasurement = null;
     private ReminderServer reminderServer = null;
     private Tstudent tstudent = null;
@@ -61,21 +57,17 @@ public class ClientThread extends Thread {
             this.clientSocket = _clientSocket;
             this.dataMeasurement = _dataMeasurement;
             this.isNagleDisable = _isNagleDisable;
-//            RTin = new RTInputStream(clientSocket.getInputStream());
-//            RTout = new RTOutputStream(clientSocket.getOutputStream());
-//            dataIn = new DataInputStream(RTin);
-//            dataOut = new DataOutputStream(RTout);
-//            outCtrl = new PrintWriter(clientSocket.getOutputStream(), true);
-//            inCtrl = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            printStream = new PrintStream(clientSocket.getOutputStream());
-            inputStream = clientSocket.getInputStream();
+            RTin = new RTInputStream(clientSocket.getInputStream());
+            RTout = new RTOutputStream(clientSocket.getOutputStream());
+            dataIn = new DataInputStream(RTin);
+            dataOut = new DataOutputStream(RTout);
+            outCtrl = new PrintWriter(clientSocket.getOutputStream(), true);
+            inCtrl = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
             AvailableBW_up = new Vector<Double>();
             AvailableBW_down = new Vector<Double>();
             ByteSecondVector = new Vector<Integer>();
-            
-            
-            
+
         } catch (IOException ex) {
             System.out.println("Client Thread Failure:" + ex.getMessage());
         }
@@ -216,10 +208,9 @@ public class ClientThread extends Thread {
                 byteCnt = 0;
                 //Cycle to read each block
                 //do {
-                
+
                 n = RTin.read(rcv_buf, byteCnt, Constants.BUFFERSIZE - byteCnt);
-                
-                //n= RTin.read(rcv_buf);
+
                 if (n > 0) {
                     byteCnt += n;
                     if (!isThreadMethod) {
@@ -256,9 +247,7 @@ public class ClientThread extends Thread {
             byte[] snd_buf = new byte[Constants.BUFFERSIZE];
             new Random().nextBytes(snd_buf);
             while (keepRunning) {
-                //RTout.write(snd_buf);
-                printStream.write(snd_buf, 0, Constants.BUFFERSIZE);                
-                //outCtrl.flush();
+                RTout.write(snd_buf, 0, Constants.BUFFERSIZE);
             }
             return true;
         } catch (Exception ex) {
@@ -325,7 +314,7 @@ public class ClientThread extends Thread {
                 dataOut.writeByte(1);
                 double BW = uplink_Server_rcv();
                 AvailableBW_up.add(BW);
-                GAP_PacketSizeVector.add(512*p);
+                GAP_PacketSizeVector.add(512 * p);
             }
 
         } catch (IOException ex) {
@@ -354,10 +343,10 @@ public class ClientThread extends Thread {
 //                Constants.PACKET_GAP = (int) Math.pow(10, p);
 //                dataMeasurement.GAP_PacketSizeVector.add((int) Constants.PACKET_GAP);
 //                System.out.println("PACKET_GAP=" + Constants.PACKET_GAP);
-                Constants.PACKETSIZE = 1460*p;
+                Constants.PACKETSIZE = 1460 * p;
                 dataMeasurement.GAP_PacketSizeVector.add((int) Constants.PACKETSIZE);
-                System.out.println("PACKET_SIZE=" + Constants.PACKETSIZE);                
-                dataIn.readByte(); 
+                System.out.println("PACKET_SIZE=" + Constants.PACKETSIZE);
+                dataIn.readByte();
                 downlink_Server_snd();
             }
         } catch (IOException ex) {
