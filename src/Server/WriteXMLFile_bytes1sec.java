@@ -87,7 +87,7 @@ public class WriteXMLFile_bytes1sec {
             String date = DATE_FORMAT.format(now);
             String xmlName = side + "" + date;
             System.err.println("xmlName: " + xmlName);
-            StreamResult result = new StreamResult(new File( "/Users/glazen/Desktop/ANDROID_RESULTS/"/*/home/glazen/Desktop/Measurements/MV/"*/ + directory + xmlName + ".xml"));
+            StreamResult result = new StreamResult(new File( "/home/glazen/Desktop/Measurements/MV/" + directory + xmlName + ".xml"));
 
             // Output to console for testing
             // StreamResult result = new StreamResult(System.out);

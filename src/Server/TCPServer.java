@@ -63,8 +63,6 @@ public class TCPServer extends Thread {
             //Algorithms defined for Downlink and Report
             ALGORITHM_DOWN = "MV_Downlink";
             ALGORITHM_REPORT = "MV_Report";
-            //isIperfSettings = _isIperfSettings; //true - Iperf Settings; false - Thesis Settings
-            //isNagleDisable = _isNagleDisable; //true - Enable Nagle's Algorithm; false - Disable Nagle's Algorithm
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -91,7 +89,6 @@ public class TCPServer extends Thread {
                         throw new IOException();
                     }
                 } catch (IOException ex) {
-                    System.out.println("NUMBER_RUNS=" + numRuns);
                     //Generate Random Integer ID
                     ID = new Random().nextInt();
 
@@ -107,12 +104,12 @@ public class TCPServer extends Thread {
                     Constants.SOCKET_RCVBUF = dis.readInt();
                     Constants.SOCKET_SNDBUF = dis.readInt();
                     System.err.println("isNagleDisable: " + isNagleDisable);
-                    System.err.println("GAP:" + Constants.PACKET_GAP + "\n"
-                            + "NUMBER_PACKETS:" + Constants.NUMBER_PACKETS + "\n"
-                            + "PACKETSIZE:" + Constants.PACKETSIZE + "\n"
-                            + "BUFFERSIZE:" + Constants.BUFFERSIZE + "\n"
+                    System.err.println("BUFFERSIZE:" + Constants.BUFFERSIZE + "\n"
                             + "SO_RCV:" + Constants.SOCKET_RCVBUF + "\n"
                             + "SO_SND:" + Constants.SOCKET_SNDBUF);
+//                            + "GAP:" + Constants.PACKET_GAP + "\n"
+//                            + "NUMBER_PACKETS:" + Constants.NUMBER_PACKETS + "\n"
+//                            + "PACKETSIZE:" + Constants.PACKETSIZE + "\n");
                     //Create New Client
                     TCP_param = new TCP_Properties(clientSocket, isNagleDisable);
                     clientSession.put(ID, clientSocket);
@@ -135,7 +132,6 @@ public class TCPServer extends Thread {
                     TCP_param = new TCP_Properties(clientSocket, isNagleDisable);
                     Thread c = new ClientThread(this.ID, ALGORITHM_REPORT, clientSocket, clientMeasurement.get(ID), isNagleDisable);
                     c.start();
-                    c.join();
                     /*
                     //Export GraphBW(TCPwindow)
                     if (numRuns == 9) {
@@ -162,14 +158,15 @@ public class TCPServer extends Thread {
                     TCP_param = new TCP_Properties(clientSocket, isNagleDisable);
                     Thread c = new ClientThread(this.ID, ALGORITHM_DOWN, clientSocket, clientMeasurement.get(ID), isNagleDisable);
                     c.start();
-                    c.join();
                 }
             }
         } catch (IOException ex) {
             ex.printStackTrace();
             System.err.println("Server initialization failure " + ex.getMessage());
-        } catch (InterruptedException ex) {
-            Logger.getLogger(TCPServer.class.getName()).log(Level.SEVERE, null, ex);
+            
+          //This catch is needed when Thread.join() is used
+//        } catch (InterruptedException ex) {
+//            Logger.getLogger(TCPServer.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             keepRunning = false;
             if (listenSocket != null) {
