@@ -248,6 +248,9 @@ public class ClientThread extends Thread {
             new Random().nextBytes(snd_buf);
             while (keepRunning) {
                 RTout.write(snd_buf);
+                if(RTout.checkError()){
+                    break;
+                }
             }
             return true;
         } catch (Exception ex) {
