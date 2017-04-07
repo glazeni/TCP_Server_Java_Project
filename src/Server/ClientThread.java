@@ -196,10 +196,10 @@ public class ClientThread extends Thread {
     }
 
     private boolean uplink_Server_rcvInSeconds(long _end) {
+        System.out.println("\nuplink_Server_rcvInSeconds STARTED!");
         try {
             byte[] rcv_buf = new byte[Constants.BUFFERSIZE];
             int n = 0;
-            System.out.println("\nuplink_Server_rcvInSeconds STARTED!");
             //Initialize Timer
             if (isThreadMethod) {
                 reminderServer = new ReminderServer(1, this.dataMeasurement, this.RTin);
@@ -247,10 +247,10 @@ public class ClientThread extends Thread {
             byte[] snd_buf = new byte[Constants.BUFFERSIZE];
             new Random().nextBytes(snd_buf);
             while (keepRunning) {
-                RTout.write(snd_buf, 0, Constants.BUFFERSIZE);
+                RTout.write(snd_buf);
             }
             return true;
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             return false;
         } finally {
             System.out.println("\ndownlink_Server_sndInSeconds DONE!");
