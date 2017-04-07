@@ -195,8 +195,9 @@ public class ClientThread extends Thread {
         return estAvailiableUpBandWidth;
     }
 
-    private boolean uplink_Server_rcvInSeconds(long _end) {
+    private boolean uplink_Server_rcvInSeconds() {
         System.out.println("\nuplink_Server_rcvInSeconds STARTED!");
+        boolean keepRunning = true;
         try {
             byte[] rcv_buf = new byte[Constants.BUFFERSIZE];
             int n = 0;
@@ -204,7 +205,7 @@ public class ClientThread extends Thread {
             if (isThreadMethod) {
                 reminderServer = new ReminderServer(1, this.dataMeasurement, this.RTin);
             }
-            while (System.currentTimeMillis() < _end) {
+            while (keepRunning) {
                 byteCnt = 0;
                 //Cycle to read each block
                 //do {
@@ -235,18 +236,18 @@ public class ClientThread extends Thread {
             if (isThreadMethod) {
                 reminderServer.cancelTimer();
             }
+            keepRunning = false;
             System.out.println("\nuplink_Server_rcvInSeconds DONE!");
         }
 
     }
 
-    private boolean downlink_Server_sndInSeconds() {
+    private boolean downlink_Server_sndInSeconds(long _end) {
         System.out.println("\ndownlink_Server_sndInSeconds STARTED!");
-        boolean keepRunning = true;
         try {
             byte[] snd_buf = new byte[Constants.BUFFERSIZE];
             new Random().nextBytes(snd_buf);
-            while (keepRunning) {
+            while (System.currentTimeMillis() < _end) {
                 RTout.write(snd_buf);
             }
             return true;
@@ -254,7 +255,6 @@ public class ClientThread extends Thread {
             return false;
         } finally {
             System.out.println("\ndownlink_Server_sndInSeconds DONE!");
-            keepRunning = false;
         }
     }
 
@@ -413,8 +413,7 @@ public class ClientThread extends Thread {
         try {
             //Uplink
             dataOut.writeByte(1);
-            long end = System.currentTimeMillis() + runningTime;
-            uplink_Server_rcvInSeconds(end);
+            uplink_Server_rcvInSeconds();
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
@@ -442,7 +441,8 @@ public class ClientThread extends Thread {
         try {
             //Downlink
             dataOut.writeByte(2);
-            downlink_Server_sndInSeconds();
+            long end = System.currentTimeMillis() + runningTime;
+            downlink_Server_sndInSeconds(end);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -511,8 +511,7 @@ public class ClientThread extends Thread {
         try {
             //Uplink
             dataOut.writeByte(1);
-            long end = System.currentTimeMillis() + runningTime;
-            uplink_Server_rcvInSeconds(end);
+            uplink_Server_rcvInSeconds();
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
@@ -543,7 +542,8 @@ public class ClientThread extends Thread {
         try {
             //Uplink
             dataOut.writeByte(2);
-            downlink_Server_sndInSeconds();
+            long end = System.currentTimeMillis() + runningTime;
+            downlink_Server_sndInSeconds(end);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
