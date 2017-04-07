@@ -195,17 +195,16 @@ public class ClientThread extends Thread {
         return estAvailiableUpBandWidth;
     }
 
-    private boolean uplink_Server_rcvInSeconds() {
-        System.out.println("\nuplink_Server_rcvInSeconds STARTED!");
-        boolean keepRunning = true;
+    private boolean uplink_Server_rcvInSeconds(long _end) {
         try {
             byte[] rcv_buf = new byte[Constants.BUFFERSIZE];
             int n = 0;
+            System.out.println("\nuplink_Server_rcvInSeconds STARTED!");
             //Initialize Timer
             if (isThreadMethod) {
                 reminderServer = new ReminderServer(1, this.dataMeasurement, this.RTin);
             }
-            while (keepRunning) {
+            while (System.currentTimeMillis() < _end) {
                 byteCnt = 0;
                 //Cycle to read each block
                 //do {
@@ -236,25 +235,26 @@ public class ClientThread extends Thread {
             if (isThreadMethod) {
                 reminderServer.cancelTimer();
             }
-            keepRunning = false;
             System.out.println("\nuplink_Server_rcvInSeconds DONE!");
         }
 
     }
 
-    private boolean downlink_Server_sndInSeconds(long _end) {
+    private boolean downlink_Server_sndInSeconds() {
         System.out.println("\ndownlink_Server_sndInSeconds STARTED!");
+        boolean keepRunning = true;
         try {
             byte[] snd_buf = new byte[Constants.BUFFERSIZE];
             new Random().nextBytes(snd_buf);
-            while (System.currentTimeMillis() < _end) {
+            while (keepRunning) {
                 RTout.write(snd_buf);
             }
             return true;
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             return false;
         } finally {
             System.out.println("\ndownlink_Server_sndInSeconds DONE!");
+            keepRunning = false;
         }
     }
 
@@ -413,14 +413,15 @@ public class ClientThread extends Thread {
         try {
             //Uplink
             dataOut.writeByte(1);
-            uplink_Server_rcvInSeconds();
+            long end = System.currentTimeMillis() + runningTime;
+            uplink_Server_rcvInSeconds(end);
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
             try {
                 //GraphBW(TCPWindows)
-                TCPServer.GraphBW_up.add(getMean(dataMeasurement.SampleSecond_up));
-                TCPServer.GraphTCPWindow_up.add(Constants.SOCKET_RCVBUF);
+//                TCPServer.GraphBW_up.add(getMean(dataMeasurement.SampleSecond_up));
+//                TCPServer.GraphTCPWindow_up.add(Constants.SOCKET_RCVBUF);
 
                 //Export to XML
                 tstudent = new Tstudent(dataMeasurement.SampleSecond_up);
@@ -441,8 +442,7 @@ public class ClientThread extends Thread {
         try {
             //Downlink
             dataOut.writeByte(2);
-            long end = System.currentTimeMillis() + runningTime;
-            downlink_Server_sndInSeconds(end);
+            downlink_Server_sndInSeconds();
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -478,12 +478,12 @@ public class ClientThread extends Thread {
             ex.printStackTrace();
         } finally {
             //GraphBW(TCPwindow)
-            TCPServer.GraphBW_down.add(getMean(dataMeasurement.SampleSecond_down));
-            TCPServer.GraphTCPWindow_down.add(Constants.SOCKET_RCVBUF);
-            TCPServer.GraphBW_up_Iperf.add(getMean(dataMeasurement.ByteSecondShell_up));
-            TCPServer.GraphTCPWindow_up_Iperf.add(Constants.SOCKET_RCVBUF);
-            TCPServer.GraphBW_down_Iperf.add(getMean(dataMeasurement.ByteSecondShell_down));
-            TCPServer.GraphTCPWindow_down_Iperf.add(Constants.SOCKET_RCVBUF);
+//            TCPServer.GraphBW_down.add(getMean(dataMeasurement.SampleSecond_down));
+//            TCPServer.GraphTCPWindow_down.add(Constants.SOCKET_RCVBUF);
+//            TCPServer.GraphBW_up_Iperf.add(getMean(dataMeasurement.ByteSecondShell_up));
+//            TCPServer.GraphTCPWindow_up_Iperf.add(Constants.SOCKET_RCVBUF);
+//            TCPServer.GraphBW_down_Iperf.add(getMean(dataMeasurement.ByteSecondShell_down));
+//            TCPServer.GraphTCPWindow_down_Iperf.add(Constants.SOCKET_RCVBUF);
 
             //Export to XML
             tstudent = new Tstudent(dataMeasurement.SampleSecond_down);
@@ -511,7 +511,8 @@ public class ClientThread extends Thread {
         try {
             //Uplink
             dataOut.writeByte(1);
-            uplink_Server_rcvInSeconds();
+            long end = System.currentTimeMillis() + runningTime;
+            uplink_Server_rcvInSeconds(end);
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
@@ -520,8 +521,8 @@ public class ClientThread extends Thread {
                 ByteSecondVector = MovingAverageCalculation(dataMeasurement.SampleReadTime);
 
                 //GraphBW(TCPWindows)
-                TCPServer.GraphBW_up.add(getMean(ByteSecondVector));
-                TCPServer.GraphTCPWindow_up.add(Constants.SOCKET_RCVBUF);
+//                TCPServer.GraphBW_up.add(getMean(ByteSecondVector));
+//                TCPServer.GraphTCPWindow_up.add(Constants.SOCKET_RCVBUF);
 
                 //Export to XML
                 tstudent = new Tstudent(ByteSecondVector);
@@ -542,8 +543,7 @@ public class ClientThread extends Thread {
         try {
             //Uplink
             dataOut.writeByte(2);
-            long end = System.currentTimeMillis() + runningTime;
-            downlink_Server_sndInSeconds(end);
+            downlink_Server_sndInSeconds();
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -583,12 +583,12 @@ public class ClientThread extends Thread {
             ByteSecondVector = MovingAverageCalculation(dataMeasurement.SampleReadTime);
 
             //GraphBW(TCPwindow)
-            TCPServer.GraphBW_down.add(getMean(ByteSecondVector));
-            TCPServer.GraphTCPWindow_down.add(Constants.SOCKET_RCVBUF);
-            TCPServer.GraphBW_up_Iperf.add(getMean(dataMeasurement.ByteSecondShell_up));
-            TCPServer.GraphTCPWindow_up_Iperf.add(Constants.SOCKET_RCVBUF);
-            TCPServer.GraphBW_down_Iperf.add(getMean(dataMeasurement.ByteSecondShell_down));
-            TCPServer.GraphTCPWindow_down_Iperf.add(Constants.SOCKET_RCVBUF);
+//            TCPServer.GraphBW_down.add(getMean(ByteSecondVector));
+//            TCPServer.GraphTCPWindow_down.add(Constants.SOCKET_RCVBUF);
+//            TCPServer.GraphBW_up_Iperf.add(getMean(dataMeasurement.ByteSecondShell_up));
+//            TCPServer.GraphTCPWindow_up_Iperf.add(Constants.SOCKET_RCVBUF);
+//            TCPServer.GraphBW_down_Iperf.add(getMean(dataMeasurement.ByteSecondShell_down));
+//            TCPServer.GraphTCPWindow_down_Iperf.add(Constants.SOCKET_RCVBUF);
 
             //Export to XML
             tstudent = new Tstudent(ByteSecondVector);
