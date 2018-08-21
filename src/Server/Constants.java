@@ -20,6 +20,6 @@ public class Constants {
     public static int SERVERPORT = 20000;
     public static final String FINAL_MSG = "END";
     public static long PACKET_GAP=0;
-    public static String SERVER_IP = "192.168.1.68";
+    public static String SERVER_IP = "192.168.1.76";//"193.136.127.218";
 
 }

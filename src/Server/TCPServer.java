@@ -40,7 +40,7 @@ public class TCPServer extends Thread {
     public static Vector<Double> GraphBW_down_Iperf = null;
     public static Vector<Integer> GraphTCPWindow_up_Iperf = null;
     public static Vector<Integer> GraphTCPWindow_down_Iperf = null;
-    private int numRuns = 0;
+    //private int numRuns = 0;
 
     public TCPServer() {
         try {
@@ -58,7 +58,10 @@ public class TCPServer extends Thread {
             clientMeasurement = new HashMap<>();
             listenSocket = new ServerSocket(Constants.SERVERPORT);
             m_clientConnections = new ClientThread[MAX_CLIENTS];
-            //ALGORITHM and ALGORITHM_UP are the same except for PGM and PT Methods in which there are just 1 TCP connection for Uplink and Downlink
+            
+            /************* MEASUREMENT ALGORITHMS ******************/
+            /**** Sample Second Thread - MV_Uplink / MV_Downlink / MV_Report ****/
+            /**** Sampling Read Time - MV_readVectorUP / MV_readVectorDOWN / MV_Report_readVector ****/
             ALGORITHM = "MV_Uplink";
             //Algorithms defined for Downlink and Report
             ALGORITHM_DOWN = "MV_Downlink";

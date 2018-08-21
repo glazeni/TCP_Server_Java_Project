@@ -426,8 +426,8 @@ public class ServerUI extends javax.swing.JFrame implements ActionListener {
     private JFreeChart createChart(final XYDataset dataset) {
         final JFreeChart result = ChartFactory.createTimeSeriesChart(
                 "Bandwidth Estimator",
-                "Time/s",
-                "Bandwidth",
+                "Time [s]",
+                "Bandwidth [bits]",
                 dataset,
                 true,
                 true,

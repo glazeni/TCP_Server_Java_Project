@@ -32,7 +32,7 @@ public class ReadTXTFile extends Thread {
         ShellVector = new Vector<Integer>();
         try {
             StringBuilder sb = new StringBuilder();
-            buffReader = new BufferedReader(new FileReader("/Users/glazen/Desktop/ANDROID_RESULTS/VODAFONE/3G/3G_VODAFONE-Uplink_NagleON.txt"));
+            buffReader = new BufferedReader(new FileReader("/Users/glazen/Desktop/Testes_1secThread/4G_VODAFONE-Uplink.txt"));
 
             while ((line = buffReader.readLine()) != null) {
                 if (line.contains("sender")) {
@@ -61,7 +61,7 @@ public class ReadTXTFile extends Thread {
             }
             //Export to XML
             Tstudent tstudent = new Tstudent(ShellVector);
-            WriteXMLFile_bytes1sec writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec("3G_VODAFONE-Uplink_NagleON", ShellVector, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "/Results/");
+            WriteXMLFile_bytes1sec writeXMLFile_bytes1sec = new WriteXMLFile_bytes1sec("4G_VODAFONE-Uplink", ShellVector, tstudent.getTotalBytes(), tstudent.getMeanVector(), tstudent.getLowerBoundVector(), tstudent.getUpperBoundVector(), "/Results/");
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
@@ -135,8 +135,8 @@ public class ReadTXTFile extends Thread {
         }
     }
 
-//    public static void main(String[] args) throws IOException {
-//        ReadTXTFile readTXTFile = new ReadTXTFile();
-//        readTXTFile.start();
-//    }
+    public static void main(String[] args) throws IOException {
+        ReadTXTFile readTXTFile = new ReadTXTFile();
+        readTXTFile.start();
+    }
 }
